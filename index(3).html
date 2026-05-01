@@ -1,0 +1,3275 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>九型人格测评 · 客服岗位入职评估系统</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+  --ink: #1a1814;
+  --paper: #f5f1e8;
+  --cream: #ebe4d3;
+  --accent: #c8472f;
+  --gold: #b8924a;
+  --olive: #5a6240;
+  --slate: #3a4756;
+  --muted: #87807a;
+  --line: rgba(26, 24, 20, 0.12);
+}
+
+- { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+background: var(–paper);
+color: var(–ink);
+font-family: ‘Noto Serif SC’, serif;
+min-height: 100vh;
+font-feature-settings: “kern” 1, “liga” 1;
+-webkit-font-smoothing: antialiased;
+}
+
+body {
+background-image:
+radial-gradient(circle at 20% 10%, rgba(184, 146, 74, 0.06) 0%, transparent 50%),
+radial-gradient(circle at 80% 80%, rgba(200, 71, 47, 0.04) 0%, transparent 50%);
+}
+
+.grain {
+position: fixed;
+inset: 0;
+pointer-events: none;
+opacity: 0.4;
+mix-blend-mode: multiply;
+z-index: 1;
+background-image: url(“data:image/svg+xml,%3Csvg viewBox=‘0 0 200 200’ xmlns=‘http://www.w3.org/2000/svg’%3E%3Cfilter id=‘n’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘0.9’ numOctaves=‘3’ /%3E%3C/filter%3E%3Crect width=‘100%25’ height=‘100%25’ filter=‘url(%23n)’ opacity=‘0.15’/%3E%3C/svg%3E”);
+}
+
+/* ========== 通用页面框架 ========== */
+.page {
+position: relative;
+z-index: 2;
+min-height: 100vh;
+display: none;
+}
+.page.active { display: block; }
+
+.container {
+max-width: 980px;
+margin: 0 auto;
+padding: 60px 40px;
+}
+
+/* ========== 封面页 ========== */
+#cover .container {
+min-height: 100vh;
+display: flex;
+flex-direction: column;
+justify-content: center;
+}
+
+.cover-frame {
+border: 1px solid var(–ink);
+padding: 80px 60px;
+position: relative;
+background: var(–paper);
+}
+
+.cover-frame::before {
+content: ‘’;
+position: absolute;
+inset: 8px;
+border: 1px solid var(–line);
+pointer-events: none;
+}
+
+.cover-corner {
+position: absolute;
+width: 28px;
+height: 28px;
+border: 2px solid var(–accent);
+}
+.cover-corner.tl { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+.cover-corner.tr { top: -2px; right: -2px; border-left: none; border-bottom: none; }
+.cover-corner.bl { bottom: -2px; left: -2px; border-right: none; border-top: none; }
+.cover-corner.br { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+
+.eyebrow {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 11px;
+letter-spacing: 0.3em;
+text-transform: uppercase;
+color: var(–muted);
+margin-bottom: 24px;
+}
+
+.eyebrow::before {
+content: ’— ’;
+color: var(–accent);
+}
+
+.cover-title {
+font-family: ‘DM Serif Display’, ‘Noto Serif SC’, serif;
+font-size: clamp(48px, 7vw, 84px);
+font-weight: 400;
+line-height: 0.95;
+letter-spacing: -0.02em;
+margin-bottom: 16px;
+}
+
+.cover-title .num {
+font-style: italic;
+color: var(–accent);
+}
+
+.cover-sub {
+font-size: 18px;
+color: var(–slate);
+margin-bottom: 40px;
+font-weight: 400;
+line-height: 1.6;
+max-width: 560px;
+}
+
+.divider {
+display: flex;
+align-items: center;
+gap: 12px;
+margin: 32px 0;
+}
+.divider .line { flex: 1; height: 1px; background: var(–line); }
+.divider .dot { width: 6px; height: 6px; background: var(–accent); border-radius: 50%; }
+
+.info-form {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 20px;
+margin-bottom: 36px;
+}
+
+.field {
+display: flex;
+flex-direction: column;
+gap: 6px;
+}
+
+.field label {
+font-size: 11px;
+font-family: ‘JetBrains Mono’, monospace;
+letter-spacing: 0.2em;
+text-transform: uppercase;
+color: var(–muted);
+}
+
+.field input, .field select {
+background: transparent;
+border: none;
+border-bottom: 1px solid var(–ink);
+padding: 8px 0;
+font-family: ‘Noto Serif SC’, serif;
+font-size: 16px;
+color: var(–ink);
+outline: none;
+transition: border-color 0.2s;
+}
+
+.field input:focus, .field select:focus {
+border-bottom-color: var(–accent);
+}
+
+.btn {
+background: var(–ink);
+color: var(–paper);
+border: none;
+padding: 18px 36px;
+font-family: ‘Noto Serif SC’, serif;
+font-size: 15px;
+font-weight: 500;
+letter-spacing: 0.1em;
+cursor: pointer;
+transition: all 0.3s;
+position: relative;
+display: inline-flex;
+align-items: center;
+gap: 12px;
+}
+
+.btn::after {
+content: ‘→’;
+font-size: 18px;
+transition: transform 0.3s;
+}
+
+.btn:hover::after { transform: translateX(4px); }
+.btn:hover { background: var(–accent); }
+
+.btn.ghost {
+background: transparent;
+color: var(–ink);
+border: 1px solid var(–ink);
+}
+.btn.ghost:hover { background: var(–ink); color: var(–paper); }
+
+.meta-info {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 32px;
+margin-top: 32px;
+padding-top: 32px;
+border-top: 1px solid var(–line);
+}
+
+.meta-item .label {
+font-size: 10px;
+font-family: ‘JetBrains Mono’, monospace;
+letter-spacing: 0.2em;
+text-transform: uppercase;
+color: var(–muted);
+margin-bottom: 6px;
+}
+.meta-item .value {
+font-size: 22px;
+font-weight: 600;
+font-family: ‘DM Serif Display’, serif;
+}
+
+/* ========== 测试页 ========== */
+#test-page .container { padding: 40px 40px 120px; }
+
+.test-header {
+position: sticky;
+top: 0;
+background: var(–paper);
+padding: 24px 0;
+margin-bottom: 32px;
+border-bottom: 1px solid var(–line);
+z-index: 10;
+}
+
+.test-header-row {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 16px;
+}
+
+.candidate-tag {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 12px;
+color: var(–muted);
+letter-spacing: 0.1em;
+}
+
+.progress-counter {
+font-family: ‘DM Serif Display’, serif;
+font-size: 24px;
+}
+.progress-counter .current { color: var(–accent); font-weight: 700; }
+.progress-counter .total { color: var(–muted); }
+
+.progress-track {
+height: 2px;
+background: var(–line);
+position: relative;
+overflow: hidden;
+}
+
+.progress-fill {
+height: 100%;
+background: var(–accent);
+width: 0%;
+transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.questions-list {
+display: flex;
+flex-direction: column;
+gap: 32px;
+}
+
+.question-card {
+padding: 32px;
+background: rgba(255, 255, 255, 0.4);
+border: 1px solid var(–line);
+position: relative;
+transition: all 0.3s;
+}
+
+.question-card:hover {
+background: rgba(255, 255, 255, 0.7);
+border-color: var(–ink);
+}
+
+.question-card.answered {
+background: rgba(184, 146, 74, 0.05);
+border-color: var(–gold);
+}
+
+.q-num {
+position: absolute;
+top: -12px;
+left: 24px;
+background: var(–paper);
+padding: 0 12px;
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 12px;
+color: var(–accent);
+letter-spacing: 0.1em;
+}
+
+.q-text {
+font-size: 18px;
+line-height: 1.7;
+margin-bottom: 24px;
+color: var(–ink);
+font-weight: 500;
+}
+
+.scale {
+display: grid;
+grid-template-columns: repeat(5, 1fr);
+gap: 10px;
+align-items: stretch;
+}
+
+.scale-option {
+position: relative;
+cursor: pointer;
+padding: 18px 8px;
+text-align: center;
+border: 1.5px solid var(–line);
+background: var(–paper);
+transition: all 0.2s;
+user-select: none;
+}
+
+.scale-option:hover {
+border-color: var(–ink);
+transform: translateY(-2px);
+background: rgba(255,255,255,0.8);
+}
+
+.scale-option input { display: none; }
+
+.scale-option .dot {
+display: block;
+width: 18px;
+height: 18px;
+border-radius: 50%;
+border: 2px solid var(–ink);
+margin: 0 auto 8px;
+transition: all 0.2s;
+background: transparent;
+}
+
+.scale-option .num {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 13px;
+font-weight: 600;
+color: var(–ink);
+display: block;
+}
+
+.scale-option .label-text {
+display: block;
+font-size: 10px;
+color: var(–muted);
+margin-top: 4px;
+letter-spacing: 0.05em;
+}
+
+/* 选中状态 - 明显的视觉反馈 */
+.scale-option.selected {
+border-color: var(–accent);
+background: var(–accent);
+transform: translateY(-3px);
+box-shadow: 0 6px 20px rgba(200, 71, 47, 0.35);
+}
+.scale-option.selected .dot {
+background: var(–paper);
+border-color: var(–paper);
+box-shadow: inset 0 0 0 4px var(–accent);
+}
+.scale-option.selected .num { color: var(–paper); }
+.scale-option.selected .label-text { color: rgba(245, 241, 232, 0.8); }
+
+/* 选中后右上角打勾标记 */
+.scale-option.selected::after {
+content: ‘✓’;
+position: absolute;
+top: 4px;
+right: 6px;
+font-size: 14px;
+color: var(–paper);
+font-weight: bold;
+}
+
+.test-footer {
+position: fixed;
+bottom: 0;
+left: 0;
+right: 0;
+background: var(–paper);
+border-top: 1px solid var(–ink);
+padding: 20px 40px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+z-index: 20;
+box-shadow: 0 -4px 20px rgba(0,0,0,0.04);
+}
+
+.footer-info {
+font-size: 13px;
+color: var(–muted);
+font-family: ‘JetBrains Mono’, monospace;
+}
+.footer-info span { color: var(–accent); font-weight: 700; }
+
+/* ========== 结果页 ========== */
+#result-page .container { padding: 60px 40px; }
+
+.result-header {
+text-align: center;
+margin-bottom: 60px;
+padding-bottom: 40px;
+border-bottom: 2px solid var(–ink);
+position: relative;
+}
+
+.result-header::after {
+content: ‘’;
+position: absolute;
+bottom: -6px;
+left: 50%;
+transform: translateX(-50%);
+width: 60px;
+height: 2px;
+background: var(–accent);
+}
+
+.result-meta-row {
+display: flex;
+justify-content: center;
+gap: 40px;
+margin-bottom: 24px;
+flex-wrap: wrap;
+}
+
+.result-meta-row .item {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 12px;
+color: var(–muted);
+letter-spacing: 0.1em;
+}
+.result-meta-row .item strong { color: var(–ink); margin-left: 4px; }
+
+.result-title {
+font-family: ‘DM Serif Display’, ‘Noto Serif SC’, serif;
+font-size: clamp(36px, 5vw, 56px);
+font-weight: 400;
+line-height: 1.1;
+margin-bottom: 12px;
+}
+
+.result-subtitle {
+font-size: 16px;
+color: var(–slate);
+font-style: italic;
+}
+
+/* 主类型展示 */
+.primary-type {
+display: grid;
+grid-template-columns: 240px 1fr;
+gap: 48px;
+padding: 48px;
+background: var(–ink);
+color: var(–paper);
+margin-bottom: 48px;
+position: relative;
+overflow: hidden;
+}
+
+.primary-type::before {
+content: ‘’;
+position: absolute;
+top: -50%;
+right: -10%;
+width: 60%;
+height: 200%;
+background: radial-gradient(circle, rgba(200, 71, 47, 0.3) 0%, transparent 60%);
+pointer-events: none;
+}
+
+.type-circle {
+position: relative;
+z-index: 2;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+border: 1px solid rgba(245, 241, 232, 0.3);
+padding: 32px;
+aspect-ratio: 1;
+}
+
+.type-num-big {
+font-family: ‘DM Serif Display’, serif;
+font-size: 120px;
+font-style: italic;
+line-height: 0.9;
+color: var(–accent);
+}
+
+.type-label {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 11px;
+letter-spacing: 0.3em;
+text-transform: uppercase;
+color: rgba(245, 241, 232, 0.6);
+margin-top: 8px;
+}
+
+.type-content { position: relative; z-index: 2; }
+
+.type-content .eyebrow {
+color: rgba(245, 241, 232, 0.7);
+margin-bottom: 16px;
+}
+
+.type-content h2 {
+font-family: ‘DM Serif Display’, ‘Noto Serif SC’, serif;
+font-size: 40px;
+margin-bottom: 8px;
+font-weight: 400;
+}
+
+.type-content .nickname {
+font-size: 16px;
+color: var(–gold);
+font-style: italic;
+margin-bottom: 20px;
+}
+
+.type-content p {
+font-size: 15px;
+line-height: 1.8;
+color: rgba(245, 241, 232, 0.85);
+}
+
+/* 分数分布 */
+.section-title {
+font-family: ‘DM Serif Display’, ‘Noto Serif SC’, serif;
+font-size: 32px;
+margin-bottom: 8px;
+font-weight: 400;
+}
+
+.section-title .num {
+color: var(–accent);
+font-style: italic;
+margin-right: 12px;
+}
+
+.section-sub {
+font-size: 14px;
+color: var(–muted);
+margin-bottom: 32px;
+font-style: italic;
+}
+
+.scores-section {
+margin-bottom: 64px;
+}
+
+.score-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 16px;
+}
+
+.score-item {
+padding: 20px;
+background: rgba(255, 255, 255, 0.5);
+border: 1px solid var(–line);
+position: relative;
+}
+
+.score-item.top {
+border-color: var(–accent);
+background: rgba(200, 71, 47, 0.05);
+}
+
+.score-item-head {
+display: flex;
+justify-content: space-between;
+align-items: baseline;
+margin-bottom: 12px;
+}
+
+.score-item .type-no {
+font-family: ‘DM Serif Display’, serif;
+font-size: 28px;
+font-style: italic;
+}
+.score-item.top .type-no { color: var(–accent); }
+
+.score-item .score-val {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 13px;
+color: var(–muted);
+}
+
+.score-item .type-name {
+font-size: 14px;
+font-weight: 600;
+margin-bottom: 8px;
+}
+
+.score-bar {
+height: 4px;
+background: var(–line);
+position: relative;
+overflow: hidden;
+}
+.score-bar-fill {
+height: 100%;
+background: var(–ink);
+transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.score-item.top .score-bar-fill { background: var(–accent); }
+
+/* 雷达图 */
+.chart-section {
+margin-bottom: 64px;
+padding: 40px;
+background: rgba(255, 255, 255, 0.5);
+border: 1px solid var(–line);
+}
+
+.chart-wrap {
+max-width: 500px;
+margin: 0 auto;
+}
+
+/* 岗位适配 */
+.fit-section { margin-bottom: 64px; }
+
+.fit-summary {
+display: grid;
+grid-template-columns: 220px 1fr;
+gap: 40px;
+align-items: center;
+padding: 40px;
+background: var(–cream);
+margin-bottom: 32px;
+border-left: 4px solid var(–accent);
+}
+
+.fit-score {
+text-align: center;
+}
+
+.fit-score-num {
+font-family: ‘DM Serif Display’, serif;
+font-size: 96px;
+line-height: 1;
+font-style: italic;
+}
+
+.fit-score-num.high { color: var(–olive); }
+.fit-score-num.med { color: var(–gold); }
+.fit-score-num.low { color: var(–accent); }
+
+.fit-score-label {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 11px;
+letter-spacing: 0.2em;
+color: var(–muted);
+margin-top: 8px;
+}
+
+.fit-grade {
+display: inline-block;
+padding: 6px 16px;
+background: var(–ink);
+color: var(–paper);
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 12px;
+letter-spacing: 0.1em;
+margin-bottom: 16px;
+}
+
+.fit-text h3 {
+font-family: ‘DM Serif Display’, ‘Noto Serif SC’, serif;
+font-size: 28px;
+margin-bottom: 12px;
+font-weight: 400;
+}
+
+.fit-text p {
+font-size: 15px;
+line-height: 1.8;
+color: var(–slate);
+}
+
+.fit-dimensions {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 20px;
+}
+
+.dim-card {
+padding: 24px;
+background: rgba(255, 255, 255, 0.6);
+border: 1px solid var(–line);
+}
+
+.dim-head {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 16px;
+}
+
+.dim-name {
+font-size: 14px;
+font-weight: 600;
+letter-spacing: 0.05em;
+}
+
+.dim-score {
+font-family: ‘DM Serif Display’, serif;
+font-size: 24px;
+font-style: italic;
+}
+.dim-score.h { color: var(–olive); }
+.dim-score.m { color: var(–gold); }
+.dim-score.l { color: var(–accent); }
+
+.dim-bar {
+height: 6px;
+background: var(–line);
+margin-bottom: 12px;
+overflow: hidden;
+}
+.dim-bar-fill { height: 100%; transition: width 0.8s; }
+.dim-bar-fill.h { background: var(–olive); }
+.dim-bar-fill.m { background: var(–gold); }
+.dim-bar-fill.l { background: var(–accent); }
+
+.dim-desc {
+font-size: 13px;
+color: var(–muted);
+line-height: 1.6;
+}
+
+/* 详细分析 */
+.analysis-section { margin-bottom: 64px; }
+
+.analysis-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 24px;
+}
+
+.analysis-card {
+padding: 28px;
+border: 1px solid var(–line);
+background: rgba(255, 255, 255, 0.5);
+}
+
+.analysis-card .head {
+display: flex;
+align-items: center;
+gap: 12px;
+margin-bottom: 16px;
+padding-bottom: 16px;
+border-bottom: 1px solid var(–line);
+}
+
+.head-icon {
+width: 32px;
+height: 32px;
+background: var(–ink);
+color: var(–paper);
+display: flex;
+align-items: center;
+justify-content: center;
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 14px;
+}
+
+.head-icon.green { background: var(–olive); }
+.head-icon.red { background: var(–accent); }
+.head-icon.gold { background: var(–gold); }
+.head-icon.blue { background: var(–slate); }
+
+.analysis-card h4 {
+font-family: ‘DM Serif Display’, ‘Noto Serif SC’, serif;
+font-size: 20px;
+font-weight: 400;
+}
+
+.analysis-card ul {
+list-style: none;
+}
+
+.analysis-card li {
+padding: 8px 0 8px 20px;
+font-size: 14px;
+line-height: 1.7;
+color: var(–slate);
+position: relative;
+}
+
+.analysis-card li::before {
+content: ‘—’;
+position: absolute;
+left: 0;
+color: var(–accent);
+}
+
+/* 录用建议 */
+.recommendation {
+padding: 48px;
+background: var(–ink);
+color: var(–paper);
+margin-bottom: 48px;
+position: relative;
+}
+
+.recommendation::before {
+content: ‘“’;
+position: absolute;
+top: 16px;
+left: 32px;
+font-family: ‘DM Serif Display’, serif;
+font-size: 120px;
+color: var(–accent);
+line-height: 1;
+opacity: 0.4;
+}
+
+.rec-content {
+position: relative;
+padding-left: 60px;
+}
+
+.rec-label {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 11px;
+letter-spacing: 0.3em;
+color: rgba(245, 241, 232, 0.6);
+margin-bottom: 12px;
+}
+
+.rec-decision {
+font-family: ‘DM Serif Display’, ‘Noto Serif SC’, serif;
+font-size: 36px;
+margin-bottom: 16px;
+}
+
+.rec-decision .marker { color: var(–accent); font-style: italic; }
+
+.rec-text {
+font-size: 15px;
+line-height: 1.9;
+color: rgba(245, 241, 232, 0.85);
+max-width: 720px;
+}
+
+/* 操作按钮 */
+.actions {
+display: flex;
+gap: 16px;
+justify-content: center;
+flex-wrap: wrap;
+padding-top: 40px;
+border-top: 1px solid var(–line);
+}
+
+/* ========== 可信度报告 ========== */
+.validity-banner {
+display: grid;
+grid-template-columns: 180px 1fr;
+gap: 32px;
+padding: 28px 32px;
+margin-bottom: 32px;
+border: 2px solid var(–line);
+background: rgba(255, 255, 255, 0.6);
+align-items: center;
+}
+
+.validity-banner.high { border-color: var(–olive); background: rgba(90, 98, 64, 0.06); }
+.validity-banner.mid { border-color: var(–gold); background: rgba(184, 146, 74, 0.08); }
+.validity-banner.low { border-color: var(–accent); background: rgba(200, 71, 47, 0.08); }
+
+.validity-left {
+text-align: center;
+border-right: 1px solid var(–line);
+padding-right: 32px;
+}
+
+.validity-num {
+font-family: ‘DM Serif Display’, serif;
+font-size: 56px;
+line-height: 1;
+font-style: italic;
+}
+.validity-banner.high .validity-num { color: var(–olive); }
+.validity-banner.mid .validity-num { color: var(–gold); }
+.validity-banner.low .validity-num { color: var(–accent); }
+
+.validity-tag {
+display: inline-block;
+padding: 4px 12px;
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 11px;
+letter-spacing: 0.15em;
+margin-top: 8px;
+}
+.validity-banner.high .validity-tag { background: var(–olive); color: var(–paper); }
+.validity-banner.mid .validity-tag { background: var(–gold); color: var(–paper); }
+.validity-banner.low .validity-tag { background: var(–accent); color: var(–paper); }
+
+.validity-right h4 {
+font-family: ‘DM Serif Display’, ‘Noto Serif SC’, serif;
+font-size: 22px;
+margin-bottom: 8px;
+font-weight: 400;
+}
+
+.validity-right .summary {
+font-size: 14px;
+color: var(–slate);
+margin-bottom: 12px;
+line-height: 1.6;
+}
+
+.validity-issues {
+list-style: none;
+display: flex;
+flex-direction: column;
+gap: 6px;
+}
+.validity-issues li {
+font-size: 13px;
+color: var(–accent);
+padding-left: 18px;
+position: relative;
+line-height: 1.6;
+}
+.validity-issues li::before {
+content: ‘⚠’;
+position: absolute;
+left: 0;
+}
+
+.validity-stats {
+display: grid;
+grid-template-columns: repeat(4, 1fr);
+gap: 20px;
+padding: 24px;
+background: rgba(255, 255, 255, 0.5);
+border: 1px solid var(–line);
+margin-bottom: 32px;
+}
+
+.stat-item { text-align: center; }
+.stat-item .stat-num {
+font-family: ‘DM Serif Display’, serif;
+font-size: 32px;
+line-height: 1;
+margin-bottom: 6px;
+}
+.stat-item .stat-label {
+font-size: 11px;
+font-family: ‘JetBrains Mono’, monospace;
+letter-spacing: 0.1em;
+color: var(–muted);
+}
+
+/* 综合分数卡片 (适配度由两部分组成) */
+.composite-fit {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 16px;
+margin-bottom: 32px;
+}
+
+.cf-card {
+padding: 24px;
+border: 1px solid var(–line);
+background: rgba(255, 255, 255, 0.5);
+text-align: center;
+}
+
+.cf-card.composite {
+background: var(–ink);
+color: var(–paper);
+border-color: var(–ink);
+}
+
+.cf-num {
+font-family: ‘DM Serif Display’, serif;
+font-size: 48px;
+font-style: italic;
+line-height: 1;
+margin-bottom: 8px;
+}
+.cf-card .cf-num { color: var(–ink); }
+.cf-card.composite .cf-num { color: var(–accent); }
+
+.cf-label {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 11px;
+letter-spacing: 0.15em;
+color: var(–muted);
+margin-bottom: 4px;
+}
+.cf-card.composite .cf-label { color: rgba(245, 241, 232, 0.7); }
+
+.cf-desc {
+font-size: 12px;
+color: var(–muted);
+font-style: italic;
+}
+.cf-card.composite .cf-desc { color: rgba(245, 241, 232, 0.6); }
+
+/* 隐藏文件输入 */
+.hidden { display: none; }
+
+/* ========== 倒计时器 ========== */
+.timer {
+display: flex;
+align-items: center;
+gap: 8px;
+padding: 6px 14px;
+background: var(–cream);
+border: 1px solid var(–ink);
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 14px;
+font-weight: 600;
+letter-spacing: 0.05em;
+margin-left: 16px;
+}
+
+.timer.warning {
+background: rgba(184, 146, 74, 0.2);
+color: #8a6a30;
+border-color: var(–gold);
+}
+.timer.danger {
+background: rgba(200, 71, 47, 0.15);
+color: var(–accent);
+border-color: var(–accent);
+animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+0%, 100% { opacity: 1; }
+50% { opacity: 0.6; }
+}
+
+.timer-icon {
+width: 14px;
+height: 14px;
+border: 2px solid currentColor;
+border-radius: 50%;
+position: relative;
+}
+.timer-icon::after {
+content: ‘’;
+position: absolute;
+top: 1px;
+left: 50%;
+width: 1.5px;
+height: 5px;
+background: currentColor;
+transform-origin: bottom;
+}
+
+/* ========== 情境题样式 ========== */
+.scenario-divider {
+margin: 60px 0 32px;
+padding: 32px;
+background: var(–ink);
+color: var(–paper);
+text-align: center;
+position: relative;
+}
+
+.scenario-divider .eyebrow {
+color: rgba(245, 241, 232, 0.6);
+margin-bottom: 12px;
+}
+
+.scenario-divider h3 {
+font-family: ‘DM Serif Display’, ‘Noto Serif SC’, serif;
+font-size: 32px;
+font-weight: 400;
+margin-bottom: 8px;
+}
+
+.scenario-divider p {
+font-size: 14px;
+color: rgba(245, 241, 232, 0.75);
+font-style: italic;
+}
+
+.scenario-card {
+padding: 32px;
+background: rgba(255, 255, 255, 0.5);
+border: 1.5px solid var(–ink);
+position: relative;
+margin-bottom: 24px;
+}
+
+.scenario-card.answered {
+background: rgba(184, 146, 74, 0.08);
+border-color: var(–gold);
+}
+
+.scenario-num {
+position: absolute;
+top: -12px;
+left: 24px;
+background: var(–ink);
+color: var(–paper);
+padding: 4px 14px;
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 11px;
+letter-spacing: 0.1em;
+}
+
+.scenario-q {
+font-size: 16px;
+line-height: 1.85;
+margin-bottom: 24px;
+color: var(–ink);
+font-weight: 500;
+padding-bottom: 20px;
+border-bottom: 1px dashed var(–line);
+}
+
+.scenario-options {
+display: flex;
+flex-direction: column;
+gap: 12px;
+}
+
+.scenario-opt {
+display: flex;
+align-items: flex-start;
+gap: 14px;
+padding: 16px 20px;
+border: 1.5px solid var(–line);
+background: var(–paper);
+cursor: pointer;
+transition: all 0.2s;
+}
+
+.scenario-opt:hover {
+border-color: var(–ink);
+transform: translateX(4px);
+background: rgba(255, 255, 255, 0.8);
+}
+
+.scenario-opt.selected {
+border-color: var(–accent);
+background: rgba(200, 71, 47, 0.08);
+border-width: 2px;
+}
+
+.scenario-opt-marker {
+flex-shrink: 0;
+width: 28px;
+height: 28px;
+border: 1.5px solid var(–ink);
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 13px;
+font-weight: 600;
+background: var(–paper);
+transition: all 0.2s;
+}
+
+.scenario-opt.selected .scenario-opt-marker {
+background: var(–accent);
+border-color: var(–accent);
+color: var(–paper);
+}
+
+.scenario-opt-text {
+flex: 1;
+font-size: 14px;
+line-height: 1.7;
+color: var(–slate);
+}
+
+.scenario-opt.selected .scenario-opt-text {
+color: var(–ink);
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+.container { padding: 30px 20px; }
+.cover-frame { padding: 40px 24px; }
+.info-form { grid-template-columns: 1fr; }
+.meta-info { grid-template-columns: 1fr; gap: 16px; }
+.primary-type { grid-template-columns: 1fr; padding: 32px 24px; gap: 24px; }
+.type-circle { max-width: 200px; margin: 0 auto; }
+.score-grid { grid-template-columns: 1fr; }
+.fit-summary { grid-template-columns: 1fr; gap: 24px; }
+.fit-dimensions { grid-template-columns: 1fr; }
+.analysis-grid { grid-template-columns: 1fr; }
+.scale { grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.scale-option { padding: 12px 4px; }
+.scale-option .label-text { font-size: 9px; }
+.test-footer { padding: 16px 20px; }
+.recommendation { padding: 32px 24px; }
+.rec-content { padding-left: 0; }
+.recommendation::before { display: none; }
+.admin-table { font-size: 11px; }
+.admin-table thead th, .admin-table tbody td { padding: 8px 6px; }
+.modal-detail { grid-template-columns: 1fr; }
+.modal-content { padding: 24px; }
+}
+
+/* ========== 管理后台 ========== */
+.admin-table {
+width: 100%;
+border-collapse: collapse;
+background: rgba(255, 255, 255, 0.5);
+border: 1px solid var(–line);
+}
+
+.admin-table thead th {
+background: var(–ink);
+color: var(–paper);
+padding: 14px 12px;
+text-align: left;
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 11px;
+letter-spacing: 0.1em;
+font-weight: 500;
+text-transform: uppercase;
+}
+
+.admin-table tbody td {
+padding: 14px 12px;
+border-bottom: 1px solid var(–line);
+font-size: 13px;
+color: var(–ink);
+vertical-align: middle;
+}
+
+.admin-table tbody tr:hover {
+background: rgba(255, 255, 255, 0.8);
+}
+
+.admin-table tbody tr.low-validity {
+background: rgba(200, 71, 47, 0.05);
+}
+
+.grade-pill {
+display: inline-block;
+padding: 3px 10px;
+border-radius: 2px;
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 11px;
+font-weight: 600;
+letter-spacing: 0.05em;
+}
+.grade-pill.A { background: var(–olive); color: var(–paper); }
+.grade-pill.B { background: var(–gold); color: var(–paper); }
+.grade-pill.C { background: var(–slate); color: var(–paper); }
+.grade-pill.D { background: var(–accent); color: var(–paper); }
+
+.fit-pill {
+font-family: ‘JetBrains Mono’, monospace;
+font-weight: 600;
+font-size: 14px;
+}
+.fit-pill.h { color: var(–olive); }
+.fit-pill.m { color: var(–gold); }
+.fit-pill.l { color: var(–accent); }
+
+.admin-action {
+background: transparent;
+border: 1px solid var(–ink);
+padding: 5px 10px;
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 11px;
+cursor: pointer;
+transition: all 0.2s;
+color: var(–ink);
+letter-spacing: 0.05em;
+margin-right: 4px;
+}
+.admin-action:hover { background: var(–ink); color: var(–paper); }
+.admin-action.danger { color: var(–accent); border-color: var(–accent); }
+.admin-action.danger:hover { background: var(–accent); color: var(–paper); }
+
+.empty-state {
+text-align: center;
+padding: 80px 20px;
+background: rgba(255, 255, 255, 0.4);
+border: 1px dashed var(–line);
+}
+.empty-state-icon {
+font-size: 48px;
+color: var(–muted);
+margin-bottom: 16px;
+font-family: ‘DM Serif Display’, serif;
+font-style: italic;
+}
+.empty-state-title {
+font-family: ‘DM Serif Display’, ‘Noto Serif SC’, serif;
+font-size: 22px;
+margin-bottom: 8px;
+}
+.empty-state-desc { color: var(–muted); font-size: 14px; }
+
+/* 候选人详情弹窗 */
+.modal-overlay {
+position: fixed;
+inset: 0;
+background: rgba(26, 24, 20, 0.6);
+z-index: 100;
+display: none;
+align-items: center;
+justify-content: center;
+padding: 40px 20px;
+}
+.modal-overlay.active { display: flex; }
+
+.modal-content {
+background: var(–paper);
+max-width: 720px;
+width: 100%;
+max-height: 90vh;
+overflow-y: auto;
+padding: 40px;
+border: 1px solid var(–ink);
+position: relative;
+}
+
+.modal-close {
+position: absolute;
+top: 16px;
+right: 16px;
+width: 32px;
+height: 32px;
+border: 1px solid var(–ink);
+background: transparent;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 18px;
+}
+.modal-close:hover { background: var(–ink); color: var(–paper); }
+
+.modal-detail {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 16px 24px;
+margin-bottom: 24px;
+padding-bottom: 24px;
+border-bottom: 1px solid var(–line);
+}
+
+.modal-detail-item .lbl {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 10px;
+color: var(–muted);
+letter-spacing: 0.15em;
+margin-bottom: 4px;
+}
+.modal-detail-item .val { font-size: 15px; font-weight: 500; }
+
+/* 打印优化 */
+@media print {
+.grain, .actions, .test-footer { display: none !important; }
+body { background: white; }
+}
+</style>
+
+</head>
+<body>
+<div class="grain"></div>
+
+<!-- ========== 封面页 ========== -->
+
+<section class="page active" id="cover">
+  <div class="container">
+    <div class="cover-frame">
+      <div class="cover-corner tl"></div>
+      <div class="cover-corner tr"></div>
+      <div class="cover-corner bl"></div>
+      <div class="cover-corner br"></div>
+
+```
+  <div class="eyebrow">Enneagram Assessment · 入职评测系统</div>
+
+  <h1 class="cover-title">九型人格<br><span class="num">No.</span>测评<span class="num">.72</span></h1>
+
+  <p class="cover-sub">
+    本测评专为<strong>客服岗位入职评估</strong>设计，覆盖<strong>未成年退款话务、在线客服、协商专员</strong>三类岗位，通过 72 道情境化题目从九种人格维度全面评估候选人的岗位适配度、性格优势与潜在风险，为人力资源决策提供科学参考。
+  </p>
+
+  <div class="divider"><div class="line"></div><div class="dot"></div><div class="line"></div></div>
+
+  <div class="info-form">
+    <div class="field">
+      <label>姓名 / Name</label>
+      <input type="text" id="cand-name" placeholder="请输入姓名">
+    </div>
+    <div class="field">
+      <label>工号 / 应聘编号</label>
+      <input type="text" id="cand-id" placeholder="选填">
+    </div>
+    <div class="field">
+      <label>应聘岗位 / Position</label>
+      <select id="cand-position">
+        <option value="未成年退款话务客服">未成年退款话务客服</option>
+        <option value="在线客服">在线客服</option>
+        <option value="协商专员客服">协商专员客服</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>所属部门 / Department</label>
+      <input type="text" id="cand-dept" placeholder="选填">
+    </div>
+  </div>
+
+  <button class="btn" onclick="startTest()">开始测评</button>
+
+  <div class="meta-info">
+    <div class="meta-item">
+      <div class="label">题目数量</div>
+      <div class="value">72 + 3 题</div>
+    </div>
+    <div class="meta-item">
+      <div class="label">预计时长</div>
+      <div class="value">15 分钟</div>
+    </div>
+    <div class="meta-item">
+      <div class="label">评估维度</div>
+      <div class="value">9 型 · 4 维</div>
+    </div>
+  </div>
+</div>
+
+<div style="text-align: center; margin-top: 24px;">
+  <a href="javascript:void(0)" onclick="showAdminLogin()" 
+     style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.15em; text-decoration: none; opacity: 0.6;">
+    ◇ ADMIN ACCESS · 管理员入口
+  </a>
+</div>
+```
+
+  </div>
+</section>
+
+<!-- ========== 测试页 ========== -->
+
+<section class="page" id="test-page">
+  <div class="container">
+    <div class="test-header">
+      <div class="test-header-row">
+        <div class="candidate-tag" id="header-tag">候选人 · ——</div>
+        <div style="display:flex;align-items:center;">
+          <div class="progress-counter">
+            <span class="current" id="answered-count">0</span>
+            <span class="total"> / <span id="total-count">72</span></span>
+          </div>
+          <div class="timer" id="timer">
+            <span class="timer-icon"></span>
+            <span id="timer-text">15:00</span>
+          </div>
+        </div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+    <div class="questions-list" id="questions-list"></div>
+  </div>
+  <div class="test-footer">
+    <div class="footer-info">已答题 <span id="footer-answered">0</span> · 剩余 <span id="footer-remaining">72</span></div>
+    <button class="btn" id="submit-btn" onclick="submitTest()" disabled style="opacity: 0.4; cursor: not-allowed;">提交测评</button>
+  </div>
+</section>
+
+<!-- ========== 结果页 ========== -->
+
+<section class="page" id="result-page">
+  <div class="container" id="result-container">
+    <!-- 结果将由 JS 动态生成 -->
+  </div>
+</section>
+
+<!-- ========== 管理员登录页 ========== -->
+
+<section class="page" id="admin-login">
+  <div class="container">
+    <div class="cover-frame" style="max-width: 540px; margin: 80px auto;">
+      <div class="cover-corner tl"></div>
+      <div class="cover-corner tr"></div>
+      <div class="cover-corner bl"></div>
+      <div class="cover-corner br"></div>
+
+```
+  <div class="eyebrow">Admin Console · 管理员后台</div>
+  <h2 style="font-family: 'DM Serif Display', 'Noto Serif SC', serif; font-size: 36px; margin-bottom: 12px; font-weight: 400;">
+    HR <span style="color: var(--accent); font-style: italic;">Console</span>
+  </h2>
+  <p style="color: var(--slate); margin-bottom: 32px; font-size: 14px; line-height: 1.7;">
+    管理员后台用于查看和管理所有测评记录。仅授权管理员可访问。
+  </p>
+  
+  <div class="divider"><div class="line"></div><div class="dot"></div><div class="line"></div></div>
+  
+  <div class="field" style="margin-bottom: 32px;">
+    <label>管理员密码 / Admin Password</label>
+    <input type="password" id="admin-pwd" placeholder="请输入管理员密码" onkeypress="if(event.key==='Enter') adminLogin()">
+  </div>
+  
+  <div style="display: flex; gap: 12px;">
+    <button class="btn" onclick="adminLogin()">登录后台</button>
+    <button class="btn ghost" onclick="backToCover()">返回</button>
+  </div>
+  
+  <div id="admin-error" style="margin-top: 20px; color: var(--accent); font-size: 13px; display: none;">
+    ⚠ 密码错误，请重试
+  </div>
+</div>
+```
+
+  </div>
+</section>
+
+<!-- ========== 管理后台 ========== -->
+
+<section class="page" id="admin-dashboard">
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 24px; border-bottom: 2px solid var(--ink); margin-bottom: 40px;">
+      <div>
+        <div class="eyebrow">Admin Console</div>
+        <h1 style="font-family: 'DM Serif Display', 'Noto Serif SC', serif; font-size: 36px; font-weight: 400; margin-top: 4px;">
+          测评记录管理后台
+        </h1>
+      </div>
+      <div style="display: flex; gap: 12px;">
+        <button class="btn ghost" onclick="exportAllExcel()" style="padding: 12px 20px; font-size: 13px;">批量导出 Excel</button>
+        <button class="btn ghost" onclick="adminLogout()" style="padding: 12px 20px; font-size: 13px;">退出</button>
+      </div>
+    </div>
+
+```
+<!-- 统计概览 -->
+<div id="admin-stats" class="validity-stats" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 32px;">
+  <!-- 由JS填充 -->
+</div>
+
+<!-- 筛选 -->
+<div style="display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; align-items: center;">
+  <input type="text" id="admin-search" placeholder="搜索姓名 / 编号..." 
+         oninput="renderAdminTable()" 
+         style="flex: 1; min-width: 200px; padding: 12px 16px; border: 1px solid var(--ink); background: transparent; font-family: 'Noto Serif SC', serif; font-size: 14px; outline: none;">
+  <select id="admin-filter-position" onchange="renderAdminTable()" 
+          style="padding: 12px 16px; border: 1px solid var(--ink); background: var(--paper); font-family: 'Noto Serif SC', serif; font-size: 14px; outline: none;">
+    <option value="">全部岗位</option>
+    <option value="未成年退款话务客服">未成年退款话务客服</option>
+    <option value="在线客服">在线客服</option>
+    <option value="协商专员客服">协商专员客服</option>
+  </select>
+  <select id="admin-filter-grade" onchange="renderAdminTable()" 
+          style="padding: 12px 16px; border: 1px solid var(--ink); background: var(--paper); font-family: 'Noto Serif SC', serif; font-size: 14px; outline: none;">
+    <option value="">全部等级</option>
+    <option value="A">A · 高度适配</option>
+    <option value="B">B · 较为适配</option>
+    <option value="C">C · 中等适配</option>
+    <option value="D">D · 低度适配</option>
+  </select>
+  <button class="btn ghost" onclick="confirmClearAll()" 
+          style="padding: 12px 16px; font-size: 13px; color: var(--accent); border-color: var(--accent);">
+    清空所有记录
+  </button>
+</div>
+
+<!-- 记录列表 -->
+<div id="admin-table-wrap"></div>
+```
+
+  </div>
+</section>
+
+<script>
+/* ============================================
+   岗位情境题 (各岗位3题，单独评估岗位胜任力，不计入九型)
+   每题4个选项，对应分值: 4(最优) / 3(良好) / 2(一般) / 1(不当)
+============================================ */
+const SCENARIO_QUESTIONS = {
+  '未成年退款话务客服': [
+    {
+      q: "一位母亲来电，情绪激动地说她的孩子用她手机充值了8000元游戏币，要求全额退款，并扬言不退就要投诉到媒体。但根据系统记录，账号实名信息为成年人。你会怎么做？",
+      options: [
+        {text: "首先安抚客户情绪，告知会按未成年退款流程协助核实，请其提供身份证明、监护关系证明等材料，依规审核后给出处理结果。", score: 4},
+        {text: "礼貌但坚定地告知账号实名为成年人不符合未成年退款条件，建议其加强家庭监管。", score: 2},
+        {text: "为了避免投诉升级，向上级申请特殊处理，争取全额退款。", score: 1},
+        {text: "先听客户把话讲完，承诺会向上反馈，记录工单后转交其他部门处理。", score: 3}
+      ]
+    },
+    {
+      q: "客户在电话中持续辱骂、人身攻击，提到你的家人。你的内心已经非常委屈和愤怒。你会怎么处理？",
+      options: [
+        {text: "保持专业语调，按规范进行三次警告后挂断电话，记录工单并向主管报备，下班后通过正规渠道做心理疏导。", score: 4},
+        {text: "立刻挂断电话，避免事态继续恶化。", score: 2},
+        {text: "在挂断前简短反驳几句以维护尊严，再做工单记录。", score: 1},
+        {text: "继续耐心听完客户发泄，不予回应，等其情绪平复后再尝试沟通。", score: 3}
+      ]
+    },
+    {
+      q: "客户提供的未成年退款证明材料明显存在伪造痕迹（如户口本PS痕迹），但客户态度良好、情况听起来很可怜。你会？",
+      options: [
+        {text: "按规范如实记录材料疑点，提交核实部门进一步审查，不因情感因素改变判断。", score: 4},
+        {text: "再次向客户说明材料问题，给其补正机会，并标注疑点上报。", score: 3},
+        {text: "考虑到客户态度良好，按疑似真实先做退款处理。", score: 1},
+        {text: "委婉提示客户材料有问题，建议其重新提交，不做任何记录。", score: 2}
+      ]
+    }
+  ],
+  '在线客服': [
+    {
+      q: "你正在同时处理5个会话，其中一位客户连续发了3条消息催促你回复，语气越来越急。其他4个会话也都在等待。你会？",
+      options: [
+        {text: "先快速发送一句安抚话术告知客户'稍等，正在为您查询'，然后按照问题复杂度优先级处理，避免任何一个会话超时。", score: 4},
+        {text: "立刻全力处理最催的客户，其他会话暂时搁置。", score: 2},
+        {text: "按先到先得原则依次处理，不打乱既定节奏。", score: 3},
+        {text: "向主管申请暂停接入新会话，先把5个处理完。", score: 1}
+      ]
+    },
+    {
+      q: "客户咨询的问题你不太确定答案，担心说错。你会？",
+      options: [
+        {text: "告知客户'让我帮您核实一下，请稍等片刻'，快速查阅知识库或请教同事，给出准确答复。", score: 4},
+        {text: "凭经验和常识给出大概的回答，让客户先了解。", score: 1},
+        {text: "建议客户拨打官方热线进一步咨询。", score: 2},
+        {text: "委婉告知客户该问题需要进一步核实，并主动帮其转接到对应业务专员。", score: 3}
+      ]
+    },
+    {
+      q: "一位客户咨询你后没有任何反馈就离开了，会话超时即将自动关闭。你会？",
+      options: [
+        {text: "在超时前主动发送关怀话术询问是否还需要帮助，超时后按流程关闭并记录。", score: 4},
+        {text: "等系统自动关闭，节省时间处理其他会话。", score: 2},
+        {text: "立刻关闭以释放接待名额。", score: 1},
+        {text: "稍等片刻，发送一次提醒后等待自动关闭。", score: 3}
+      ]
+    }
+  ],
+  '协商专员客服': [
+    {
+      q: "客户来电协商分期还款，声泪俱下表示家中有重病亲属、无力偿还，请求大幅减免。但根据资料其实际经济能力可以偿还。你会？",
+      options: [
+        {text: "保持理性同理心，按公司协商方案规则给出可行的分期或减免额度，不因情感因素突破授权底线。", score: 4},
+        {text: "出于人道主义，向上级申请最大限度的减免方案。", score: 1},
+        {text: "礼貌坚定地告知客户经审核其经济能力具备偿还条件，不予减免。", score: 2},
+        {text: "先认真倾听并表达理解，然后基于实际能力提出合理协商方案，明确说明这是公司能给予的最大权限。", score: 3}
+      ]
+    },
+    {
+      q: "客户反复纠缠、情绪激烈、威胁要投诉到监管部门，要求超出你权限的减免方案。你会？",
+      options: [
+        {text: "保持专业，明确告知公司协商规则与你的授权范围，对超授权事项可申请上级介入但不轻易许诺，记录全程沟通。", score: 4},
+        {text: "立即上报主管，请其全权处理避免投诉风险。", score: 2},
+        {text: "为快速解决问题，向客户暗示可争取超授权方案。", score: 1},
+        {text: "态度坚决回绝并告知投诉是其权利，记录工单后结束沟通。", score: 3}
+      ]
+    },
+    {
+      q: "在协商过程中，客户突然透露一个关键信息：他即将获得一笔大额收入。这与他之前哭穷的说辞完全矛盾。你会？",
+      options: [
+        {text: "敏锐捕捉这一信息，自然地引导客户进一步说明，调整协商策略，争取公司利益最大化。", score: 4},
+        {text: "立刻揭穿客户先前的不实陈述，要求其说清情况。", score: 2},
+        {text: "先记下来，按原协商方案继续推进，会后再向主管汇报。", score: 1},
+        {text: "委婉确认收入信息属实后，重新评估协商方案并礼貌告知调整后的额度。", score: 3}
+      ]
+    }
+  ]
+};
+
+/* ============================================
+   一致性检测对 (反向题对 - 检测随机/讨好作答)
+   每对题表达意思相反，正常作答应该是反向分数
+   例如: 一题选5分，反向题应该选1或2分
+   通过计算所有反向对的"理论一致度"判断作答可信度
+============================================ */
+const CONSISTENCY_PAIRS = [
+  // 题目编号基于QUESTIONS数组的索引(0-71)
+  // 1号: 严格规则 vs ... (找语义反向的题)
+  // 实际通过同型号题目的内部一致性来检测,而非反向语义
+  // 这里用同型号题的方差作为一致性指标
+  // (高方差 = 同型号题答案差异大 = 作答可疑)
+];
+
+/* 讨好作答检测: 全选高分(4-5)或全选中位(3)的比例 */
+function detectSocialDesirability(answers) {
+  const values = Object.values(answers);
+  const high = values.filter(v => v >= 4).length / values.length;
+  const middle = values.filter(v => v === 3).length / values.length;
+  const low = values.filter(v => v <= 2).length / values.length;
+  return { high, middle, low };
+}
+
+/* 同型号内部一致性 (方差越小越一致) */
+function calculateInternalConsistency(answers, questions) {
+  const typeAnswers = {1:[],2:[],3:[],4:[],5:[],6:[],7:[],8:[],9:[]};
+  questions.forEach((q, idx) => {
+    if (answers[idx] !== undefined) typeAnswers[q.t].push(answers[idx]);
+  });
+  // 计算每个型号的标准差
+  const stds = [];
+  Object.values(typeAnswers).forEach(arr => {
+    if (arr.length < 2) return;
+    const mean = arr.reduce((a,b)=>a+b,0) / arr.length;
+    const variance = arr.reduce((a,b)=>a+Math.pow(b-mean,2),0) / arr.length;
+    stds.push(Math.sqrt(variance));
+  });
+  const avgStd = stds.reduce((a,b)=>a+b,0) / stds.length;
+  // 标准差范围 0-2, 转为一致性分数 (越小越一致)
+  // 0.6以下 = 高一致性, 1.0以上 = 低一致性
+  return {
+    avgStd: avgStd,
+    score: Math.max(0, Math.min(100, Math.round((1.5 - avgStd) / 1.5 * 100)))
+  };
+}
+
+/* ============================================
+   九型人格题库 (72题，每型8题)
+   每题对应一个型号 (1-9)
+   评分: 1-5 (1=完全不符合, 5=非常符合)
+============================================ */
+const QUESTIONS = [
+  // Type 1 完美型 (改革者)
+  {t:1, q:"我对工作中的细节和准确性有非常高的要求，难以接受错漏。"},
+  {t:1, q:"当看到不规范或错误的操作时，我会忍不住想要纠正它。"},
+  {t:1, q:"我会严格按照标准流程和规则执行任务，不喜欢走捷径。"},
+  {t:1, q:"我对自己和他人都有较高的道德和品质标准。"},
+  {t:1, q:"完成工作后，我常常自我审视，思考哪里还可以做得更好。"},
+  {t:1, q:"我认为做事要么不做，要做就要做到尽善尽美。"},
+  {t:1, q:"我擅长发现流程或规则中存在的漏洞和问题。"},
+  {t:1, q:"面对客户的不合理请求，我会坚持原则不轻易妥协。"},
+
+  // Type 2 助人型
+  {t:2, q:"我乐于主动帮助同事解决工作中的困难。"},
+  {t:2, q:"我能够敏锐察觉到他人的情绪变化和需要。"},
+  {t:2, q:"被他人需要和认可对我来说很重要。"},
+  {t:2, q:"我在团队中常扮演协调人或润滑剂的角色。"},
+  {t:2, q:"我会优先考虑他人的感受，有时甚至忽略自己的需求。"},
+  {t:2, q:"面对求助者，我很难拒绝，即便会给自己增加负担。"},
+  {t:2, q:"我喜欢与人建立温暖、亲近的关系。"},
+  {t:2, q:"在面对情绪激动的客户时，我能很好地共情对方的感受。"},
+
+  // Type 3 成就型
+  {t:3, q:"我习惯设定明确的目标，并努力去达成。"},
+  {t:3, q:"我注重工作效率，希望在最短时间内做出最多成果。"},
+  {t:3, q:"绩效排名和KPI对我有很强的激励作用。"},
+  {t:3, q:"我会注意自己在他人眼中的形象和专业度。"},
+  {t:3, q:"我愿意为了完成任务调整自己的方式或风格。"},
+  {t:3, q:"我喜欢被认可为团队中的高产出者。"},
+  {t:3, q:"我会主动学习新技能以保持竞争力。"},
+  {t:3, q:"失败或落后会让我感到强烈的挫败感。"},
+
+  // Type 4 自我型
+  {t:4, q:"我比较敏感，容易被他人的言语或氛围影响情绪。"},
+  {t:4, q:"我重视自己内心独特的感受，不喜欢被同质化。"},
+  {t:4, q:"重复性、机械性的工作容易让我感到压抑或厌倦。"},
+  {t:4, q:"我倾向于以个人感受去理解事物，而不是冰冷的规则。"},
+  {t:4, q:"我有时会陷入对过去或情感的反复思考。"},
+  {t:4, q:"我希望自己的工作成果能体现个人风格和创意。"},
+  {t:4, q:"在压力下，我可能会表现出明显的情绪波动。"},
+  {t:4, q:"我对美感和审美细节比一般人更敏感。"},
+
+  // Type 5 思考型
+  {t:5, q:"我喜欢独立思考，不轻易被他人观点左右。"},
+  {t:5, q:"做决策前，我会先收集大量信息和数据进行分析。"},
+  {t:5, q:"我更愿意通过文字、邮件沟通而不是当面交流。"},
+  {t:5, q:"我倾向于保持冷静客观，不被情绪干扰判断。"},
+  {t:5, q:"我擅长从复杂信息中归纳出规律和逻辑。"},
+  {t:5, q:"独处的时间对我来说是必要的能量恢复方式。"},
+  {t:5, q:"我对所做之事希望深入理解其原理，而非浅尝辄止。"},
+  {t:5, q:"在处理复杂客诉时，我能保持理性、不被对方情绪带偏。"},
+
+  // Type 6 忠诚型
+  {t:6, q:"我做决定前会反复权衡，确保把风险降到最低。"},
+  {t:6, q:"我重视团队的稳定性和长期合作关系。"},
+  {t:6, q:"面对模糊的指令，我会主动确认而不是擅自决定。"},
+  {t:6, q:"我对潜在风险和异常情况比较警觉。"},
+  {t:6, q:"我倾向于遵守组织规定和上级安排。"},
+  {t:6, q:"我会未雨绸缪，提前为可能出现的问题做准备。"},
+  {t:6, q:"在不熟悉的环境或新任务面前，我会感到些许不安。"},
+  {t:6, q:"在处理客户问题时，我宁可多核实一遍也不愿留下隐患。"},
+
+  // Type 7 活跃型
+  {t:7, q:"我喜欢尝试新事物，对新鲜的工作内容充满好奇。"},
+  {t:7, q:"我能够同时处理多个任务并在它们之间切换。"},
+  {t:7, q:"我倾向于关注事物积极的一面，不轻易消沉。"},
+  {t:7, q:"长时间做单一重复性工作会让我感到非常无聊。"},
+  {t:7, q:"我擅长用幽默或灵活的方式化解紧张气氛。"},
+  {t:7, q:"我的脑子里常常涌现出很多想法和计划。"},
+  {t:7, q:"约束过多的环境会让我感到不舒服。"},
+  {t:7, q:"我能在压力下保持乐观和动力。"},
+
+  // Type 8 领袖型
+  {t:8, q:"面对冲突，我倾向于直接表达立场而不是回避。"},
+  {t:8, q:"我希望能够掌控自己的工作节奏和方式。"},
+  {t:8, q:"我有较强的执行力，决定的事会立刻去做。"},
+  {t:8, q:"我不害怕做出艰难的决策或承担责任。"},
+  {t:8, q:"对于不公平的事情，我会站出来发声。"},
+  {t:8, q:"在团队中，我倾向于自然地承担起领导角色。"},
+  {t:8, q:"我能扛住高压环境而不轻易示弱。"},
+  {t:8, q:"面对客户的施压或威胁，我能坚持立场不轻易让步。"},
+
+  // Type 9 和平型
+  {t:9, q:"我倾向于避免与同事发生正面冲突。"},
+  {t:9, q:"我能够耐心做好长时间的重复性工作。"},
+  {t:9, q:"我习惯于配合团队意见，不喜欢标新立异。"},
+  {t:9, q:"我能在嘈杂或紧张的环境中保持平静。"},
+  {t:9, q:"我倾向于看到事情的多面性，避免快速下结论。"},
+  {t:9, q:"我做事节奏较为稳定，不容易急躁。"},
+  {t:9, q:"我容易被他人的意见所影响而改变自己原本的想法。"},
+  {t:9, q:"在长时间高强度的客户接待中，我能始终保持稳定情绪和耐心。"},
+];
+
+/* ============================================
+   九型人格定义
+============================================ */
+const TYPES = {
+  1: {
+    name: "完美型", subname: "改革者 / The Reformer",
+    nickname: "原则、理性、追求完美",
+    desc: "原则性强、追求高标准、注重细节与正确性。是天生的'质量守门员'，对错误高度敏感，能严格按照规范执行工作，面对客户施压时能坚守立场。"
+  },
+  2: {
+    name: "助人型", subname: "给予者 / The Helper",
+    nickname: "温暖、共情、人际敏感",
+    desc: "温暖友善、富有共情力、擅长理解他人情感。在客服一线表现出色，但需注意客观性，避免在博弈协商中被情绪牵动而越过原则。"
+  },
+  3: {
+    name: "成就型", subname: "实干者 / The Achiever",
+    nickname: "高效、目标导向、重视绩效",
+    desc: "目标明确、效率优先、形象意识强。是天生的KPI达成者，擅长在量化指标驱动下高效产出，特别适合在线客服等绩效导向型岗位。"
+  },
+  4: {
+    name: "自我型", subname: "个性者 / The Individualist",
+    nickname: "敏感、感性、追求独特",
+    desc: "情感丰富、追求独特性、对美感敏感。富有创造力但容易情绪波动，不太适应高度重复的标准化客服工作。"
+  },
+  5: {
+    name: "思考型", subname: "观察者 / The Investigator",
+    nickname: "理性、独立、深度分析",
+    desc: "理性冷静、思维深刻、善于独立分析。在疑难案例处理、协商策略制定方面有突出优势，是协商专员的核心型号之一。"
+  },
+  6: {
+    name: "忠诚型", subname: "怀疑者 / The Loyalist",
+    nickname: "审慎、可靠、风险意识",
+    desc: "谨慎细致、忠诚可靠、风险意识强。是合规要求高的客服岗位的天然适配者，擅长发现潜在风险并严格执行规范。"
+  },
+  7: {
+    name: "活跃型", subname: "热情者 / The Enthusiast",
+    nickname: "灵活、乐观、求新求变",
+    desc: "活力充沛、思维灵活、追求新鲜。在多任务并行、应变速度方面有优势，适合在线客服等节奏快的岗位，但对单调岗位容忍度低。"
+  },
+  8: {
+    name: "领袖型", subname: "挑战者 / The Challenger",
+    nickname: "果断、强势、敢于决断",
+    desc: "果断有力、敢担责任、执行力强。适合协商专员、组长等需要博弈决断力的岗位，但需注意服务温度与团队协作的柔性。"
+  },
+  9: {
+    name: "和平型", subname: "调停者 / The Peacemaker",
+    nickname: "稳定、随和、耐心持久",
+    desc: "性格平和、耐心稳定、抗压力强。能够长期承受重复性、高情绪压力的工作而保持稳定，是话务客服等岗位的高适配型号。"
+  }
+};
+
+/* ============================================
+   岗位适配度算法 (针对三种客服岗位差异化加权)
+   
+   ┌─ 未成年退款话务客服 ─────────────────────┐
+   │ 特点: 高情绪压力(家长激烈投诉)、需要共情但坚守规则
+   │       口头沟通、长期重复、需要心理稳定
+   │ 高适配: 9号(稳定耐心) > 6号(谨慎合规) > 2号(共情) > 1号(原则)
+   │ 低适配: 8号(过强势)、4号(情绪波动)、7号(不耐受重复)
+   └─────────────────────────────────────────┘
+   
+   ┌─ 在线客服 ────────────────────────────────┐
+   │ 特点: 多任务并行、节奏快、文字沟通、应变灵活
+   │       需要效率与温度并重
+   │ 高适配: 3号(高效KPI) > 7号(灵活多任务) > 2号(共情) > 9号(稳定)
+   │ 低适配: 5号(沟通疏离)、4号(情绪化)、8号(强势)
+   └─────────────────────────────────────────┘
+   
+   ┌─ 协商专员客服 ────────────────────────────┐
+   │ 特点: 博弈性强、需要原则性和决断力、抗压
+   │       涉及金额谈判、规则坚守、心理对抗
+   │ 高适配: 8号(果断博弈) > 1号(原则) > 6号(风控) > 5号(理性)
+   │ 低适配: 2号(易心软)、4号(情绪化)、9号(回避冲突)
+   └─────────────────────────────────────────┘
+============================================ */
+const POSITION_WEIGHTS = {
+  '未成年退款话务客服': {
+    1: 1.2,  2: 1.3,  3: 0.6,  4: -0.4,  5: 0.7,
+    6: 1.4,  7: -0.5, 8: -0.2, 9: 1.6
+  },
+  '在线客服': {
+    1: 0.7,  2: 1.3,  3: 1.5,  4: -0.3,  5: 0.4,
+    6: 0.8,  7: 1.4,  8: -0.1, 9: 1.2
+  },
+  '协商专员客服': {
+    1: 1.4,  2: 0.3,  3: 1.0,  4: -0.4,  5: 1.2,
+    6: 1.3,  7: 0.4,  8: 1.5,  9: 0.5
+  }
+};
+
+/* 三个岗位的核心能力维度评估算法 */
+const POSITION_DIMENSIONS = {
+  '未成年退款话务客服': {
+    '情绪稳定': (s) => Math.round(s[9]*0.4 + s[6]*0.2 + s[5]*0.2 + (100-s[4])*0.2),
+    '共情能力': (s) => Math.round(s[2]*0.5 + s[9]*0.3 + s[6]*0.2),
+    '原则坚守': (s) => Math.round(s[1]*0.5 + s[6]*0.3 + s[8]*0.2),
+    '长期耐受': (s) => Math.round(s[9]*0.5 + s[6]*0.3 + (100-s[7])*0.2)
+  },
+  '在线客服': {
+    '响应效率': (s) => Math.round(s[3]*0.5 + s[7]*0.3 + s[8]*0.2),
+    '多任务处理': (s) => Math.round(s[7]*0.4 + s[3]*0.3 + s[9]*0.3),
+    '客户共情': (s) => Math.round(s[2]*0.5 + s[9]*0.3 + s[7]*0.2),
+    '抗压稳定': (s) => Math.round(s[9]*0.4 + s[3]*0.3 + (100-s[4])*0.3)
+  },
+  '协商专员客服': {
+    '原则坚守': (s) => Math.round(s[1]*0.4 + s[6]*0.3 + s[8]*0.3),
+    '博弈决断': (s) => Math.round(s[8]*0.5 + s[3]*0.2 + s[1]*0.3),
+    '理性分析': (s) => Math.round(s[5]*0.5 + s[1]*0.3 + s[6]*0.2),
+    '抗压能力': (s) => Math.round(s[8]*0.4 + s[6]*0.3 + s[9]*0.2 + (100-s[4])*0.1)
+  }
+};
+
+/* ============================================
+   全局状态
+============================================ */
+let answers = {};           // 九型题答案 {questionIndex: score}
+let scenarioAnswers = {};   // 情境题答案 {scenarioIndex: score}
+let candidate = {};
+let timerInterval = null;
+let timerSeconds = 15 * 60; // 15分钟
+let currentScenarios = [];  // 当前岗位的情境题
+
+/* ============================================
+   倒计时器
+============================================ */
+function startTimer() {
+  timerSeconds = 15 * 60;
+  updateTimerDisplay();
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timerSeconds--;
+    updateTimerDisplay();
+    if (timerSeconds <= 0) {
+      clearInterval(timerInterval);
+      handleTimeUp();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const min = Math.floor(timerSeconds / 60);
+  const sec = timerSeconds % 60;
+  const text = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  const el = document.getElementById('timer-text');
+  if (el) el.textContent = text;
+  
+  const timer = document.getElementById('timer');
+  if (timer) {
+    timer.classList.remove('warning', 'danger');
+    if (timerSeconds <= 60) timer.classList.add('danger');
+    else if (timerSeconds <= 5 * 60) timer.classList.add('warning');
+  }
+}
+
+function handleTimeUp() {
+  const totalQ = 72 + currentScenarios.length;
+  const answered = Object.keys(answers).length + Object.keys(scenarioAnswers).length;
+  if (answered >= totalQ) {
+    submitTest();
+    return;
+  }
+  alert(`时间到！您共完成 ${answered}/${totalQ} 题。系统将基于已答内容生成结果（未答题计为中位分3）。`);
+  // 自动填充未答题为中位3分
+  QUESTIONS.forEach((q, idx) => { if (answers[idx] === undefined) answers[idx] = 3; });
+  currentScenarios.forEach((s, idx) => { if (scenarioAnswers[idx] === undefined) scenarioAnswers[idx] = 2.5; });
+  submitTest();
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+/* ============================================
+   渲染题目列表
+============================================ */
+function startTest() {
+  const name = document.getElementById('cand-name').value.trim();
+  if (!name) {
+    alert('请输入候选人姓名');
+    return;
+  }
+  candidate = {
+    name: name,
+    id: document.getElementById('cand-id').value.trim() || '——',
+    position: document.getElementById('cand-position').value,
+    dept: document.getElementById('cand-dept').value.trim() || '——',
+    date: new Date().toLocaleDateString('zh-CN', {year:'numeric', month:'2-digit', day:'2-digit'}),
+    startTime: Date.now()
+  };
+  
+  // 加载该岗位的情境题
+  currentScenarios = SCENARIO_QUESTIONS[candidate.position] || [];
+  const totalQ = 72 + currentScenarios.length;
+  document.getElementById('total-count').textContent = totalQ;
+  document.getElementById('footer-remaining').textContent = totalQ;
+  document.getElementById('header-tag').textContent = `候选人 · ${candidate.name} / ${candidate.position}`;
+  
+  // 题目顺序: 按型号轮流取以打散同型号
+  const grouped = {};
+  QUESTIONS.forEach((q, i) => {
+    if (!grouped[q.t]) grouped[q.t] = [];
+    grouped[q.t].push({...q, originalIndex: i});
+  });
+  const ordered = [];
+  for (let i = 0; i < 8; i++) {
+    for (let t = 1; t <= 9; t++) {
+      if (grouped[t][i]) ordered.push(grouped[t][i]);
+    }
+  }
+  
+  const list = document.getElementById('questions-list');
+  list.innerHTML = '';
+  const scaleLabels = {1: '完全不符合', 2: '比较不符合', 3: '说不清', 4: '比较符合', 5: '完全符合'};
+  ordered.forEach((q, displayIdx) => {
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.id = `q-card-${q.originalIndex}`;
+    card.innerHTML = `
+      <div class="q-num">Q ${String(displayIdx + 1).padStart(2, '0')} / ${totalQ}</div>
+      <div class="q-text">${q.q}</div>
+      <div class="scale">
+        ${[1,2,3,4,5].map(v => `
+          <label class="scale-option" data-q="${q.originalIndex}" data-v="${v}" onclick="selectAnswer(${q.originalIndex}, ${v})">
+            <input type="radio" name="q${q.originalIndex}" value="${v}">
+            <span class="dot"></span>
+            <span class="num">${v}</span>
+            <span class="label-text">${scaleLabels[v]}</span>
+          </label>
+        `).join('')}
+      </div>
+    `;
+    list.appendChild(card);
+  });
+  
+  // 添加情境题分隔区与情境题
+  if (currentScenarios.length > 0) {
+    const divider = document.createElement('div');
+    divider.className = 'scenario-divider';
+    divider.innerHTML = `
+      <div class="eyebrow">SITUATIONAL JUDGMENT · 岗位情境题</div>
+      <h3>${candidate.position} · 实战场景</h3>
+      <p>以下情境模拟该岗位真实工作场景，请选择您最可能的处理方式</p>
+    `;
+    list.appendChild(divider);
+    
+    currentScenarios.forEach((scenario, sIdx) => {
+      const card = document.createElement('div');
+      card.className = 'scenario-card';
+      card.id = `s-card-${sIdx}`;
+      const optsHtml = scenario.options.map((opt, oIdx) => `
+        <label class="scenario-opt" data-s="${sIdx}" data-o="${oIdx}" onclick="selectScenario(${sIdx}, ${oIdx}, ${opt.score})">
+          <span class="scenario-opt-marker">${String.fromCharCode(65 + oIdx)}</span>
+          <span class="scenario-opt-text">${opt.text}</span>
+        </label>
+      `).join('');
+      card.innerHTML = `
+        <div class="scenario-num">情境题 ${String(sIdx + 1).padStart(2, '0')} / ${currentScenarios.length}</div>
+        <div class="scenario-q">${scenario.q}</div>
+        <div class="scenario-options">${optsHtml}</div>
+      `;
+      list.appendChild(card);
+    });
+  }
+  
+  document.getElementById('cover').classList.remove('active');
+  document.getElementById('test-page').classList.add('active');
+  window.scrollTo(0, 0);
+  
+  // 启动倒计时
+  startTimer();
+}
+
+function selectAnswer(qIdx, value) {
+  answers[qIdx] = value;
+  
+  // 更新UI
+  const card = document.getElementById(`q-card-${qIdx}`);
+  card.classList.add('answered');
+  card.querySelectorAll('.scale-option').forEach(opt => {
+    opt.classList.remove('selected');
+    if (parseInt(opt.dataset.v) === value) opt.classList.add('selected');
+  });
+  
+  updateProgress();
+}
+
+function selectScenario(sIdx, oIdx, score) {
+  scenarioAnswers[sIdx] = score;
+  
+  const card = document.getElementById(`s-card-${sIdx}`);
+  card.classList.add('answered');
+  card.querySelectorAll('.scenario-opt').forEach(opt => {
+    opt.classList.remove('selected');
+    if (parseInt(opt.dataset.o) === oIdx) opt.classList.add('selected');
+  });
+  
+  updateProgress();
+}
+
+function updateProgress() {
+  const totalQ = 72 + currentScenarios.length;
+  const answered = Object.keys(answers).length + Object.keys(scenarioAnswers).length;
+  
+  document.getElementById('answered-count').textContent = answered;
+  document.getElementById('footer-answered').textContent = answered;
+  document.getElementById('footer-remaining').textContent = totalQ - answered;
+  document.getElementById('progress-fill').style.width = (answered / totalQ * 100) + '%';
+  
+  const btn = document.getElementById('submit-btn');
+  if (answered === totalQ) {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+  } else {
+    btn.disabled = true;
+    btn.style.opacity = '0.4';
+    btn.style.cursor = 'not-allowed';
+  }
+}
+
+/* ============================================
+   提交测评 & 计算结果
+============================================ */
+function submitTest() {
+  const totalQ = 72 + currentScenarios.length;
+  const answered = Object.keys(answers).length + Object.keys(scenarioAnswers).length;
+  if (answered < totalQ) {
+    alert('还有题目未作答，请完成所有题目后提交');
+    return;
+  }
+  
+  stopTimer();
+  
+  // 记录用时
+  const usedSeconds = Math.round((Date.now() - candidate.startTime) / 1000);
+  candidate.usedTime = `${Math.floor(usedSeconds/60)}分${usedSeconds%60}秒`;
+  
+  // 计算每型分数 (每型8题, 满分40)
+  const typeScores = {1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0};
+  QUESTIONS.forEach((q, idx) => {
+    typeScores[q.t] += (answers[idx] || 0);
+  });
+  const typePercent = {};
+  Object.keys(typeScores).forEach(t => {
+    typePercent[t] = Math.round(typeScores[t] / 40 * 100);
+  });
+  
+  // 主类型 = 最高分
+  const sortedTypes = Object.entries(typePercent).sort((a,b) => b[1] - a[1]);
+  const primaryType = parseInt(sortedTypes[0][0]);
+  
+  // 根据应聘岗位读取专属加权
+  const FIT_WEIGHTS = POSITION_WEIGHTS[candidate.position];
+  
+  // 计算九型岗位适配度
+  const weightedScore = Object.keys(typePercent).reduce((acc, t) => {
+    return acc + typePercent[t] * FIT_WEIGHTS[t];
+  }, 0);
+  const maxWeighted = Object.values(FIT_WEIGHTS).reduce((acc, w) => acc + (w > 0 ? w * 100 : 0), 0);
+  const minWeighted = Object.values(FIT_WEIGHTS).reduce((acc, w) => acc + (w < 0 ? w * 100 : 0), 0);
+  const personalityFit = Math.max(0, Math.min(100, Math.round((weightedScore - minWeighted) / (maxWeighted - minWeighted) * 100)));
+  
+  // 计算情境题胜任力分数 (每题满分4, 折算100)
+  let scenarioScore = 0;
+  if (currentScenarios.length > 0) {
+    const totalScenarioPoints = Object.values(scenarioAnswers).reduce((a,b) => a+b, 0);
+    const maxScenarioPoints = currentScenarios.length * 4;
+    scenarioScore = Math.round(totalScenarioPoints / maxScenarioPoints * 100);
+  }
+  
+  // 综合适配度 = 九型(60%) + 情境(40%)
+  const fitScore = currentScenarios.length > 0 
+    ? Math.round(personalityFit * 0.6 + scenarioScore * 0.4)
+    : personalityFit;
+  
+  // 一致性检测
+  const consistency = calculateInternalConsistency(answers, QUESTIONS);
+  const social = detectSocialDesirability(answers);
+  
+  // 作答可信度评估
+  let validity = 'high';
+  let validityScore = 100;
+  let validityIssues = [];
+  
+  if (consistency.score < 40) {
+    validityIssues.push('同型号题目内部一致性较低，可能存在随意作答');
+    validityScore -= 30;
+  } else if (consistency.score < 60) {
+    validityIssues.push('同型号题目一致性中等，建议关注');
+    validityScore -= 15;
+  }
+  
+  if (social.high > 0.75) {
+    validityIssues.push('高分(4-5分)选择比例过高，存在讨好作答倾向');
+    validityScore -= 25;
+  }
+  if (social.middle > 0.5) {
+    validityIssues.push('中位分(3分)选择比例过高，可能在回避真实选择');
+    validityScore -= 20;
+  }
+  if (social.low > 0.6) {
+    validityIssues.push('低分(1-2分)选择比例过高，可能存在自我贬低或抵触作答');
+    validityScore -= 15;
+  }
+  
+  if (usedSeconds < 180) {
+    validityIssues.push(`作答用时仅 ${candidate.usedTime}，过快可能影响题目理解深度`);
+    validityScore -= 25;
+  }
+  
+  validityScore = Math.max(0, validityScore);
+  if (validityScore >= 75) validity = 'high';
+  else if (validityScore >= 50) validity = 'mid';
+  else validity = 'low';
+  
+  // 根据岗位计算专属四维评估
+  const dimCalcs = POSITION_DIMENSIONS[candidate.position];
+  const dimensions = {};
+  Object.keys(dimCalcs).forEach(dimName => {
+    dimensions[dimName] = Math.max(0, Math.min(100, dimCalcs[dimName](typePercent)));
+  });
+  
+  renderResult({
+    typeScores: typePercent,
+    sortedTypes,
+    primaryType,
+    fitScore,
+    personalityFit,
+    scenarioScore,
+    dimensions,
+    consistency,
+    social,
+    validity,
+    validityScore,
+    validityIssues
+  });
+  
+  document.getElementById('test-page').classList.remove('active');
+  document.getElementById('result-page').classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+/* ============================================
+   渲染结果页
+============================================ */
+function renderResult(data) {
+  const { typeScores, sortedTypes, primaryType, fitScore, personalityFit, scenarioScore, dimensions, consistency, social, validity, validityScore, validityIssues } = data;
+  const primary = TYPES[primaryType];
+  
+  // 录用建议 (根据应聘岗位差异化)
+  const positionRecText = getPositionRecText(candidate.position, fitScore, primaryType);
+  let fitGrade, fitClass, fitDesc, recDecision, recText;
+  if (fitScore >= 75) {
+    fitGrade = 'A · 高度适配';
+    fitClass = 'high';
+    fitDesc = `候选人的人格特质与「${candidate.position}」岗位高度契合，具备成为优秀员工的核心素质。`;
+    recDecision = '<span class="marker">✓</span> 强烈推荐录用';
+    recText = positionRecText.high;
+  } else if (fitScore >= 60) {
+    fitGrade = 'B · 较为适配';
+    fitClass = 'med';
+    fitDesc = `候选人具备「${candidate.position}」岗位所需的基本素质，部分维度有待加强但整体适配度良好。`;
+    recDecision = '<span class="marker">○</span> 建议录用';
+    recText = positionRecText.mid;
+  } else if (fitScore >= 45) {
+    fitGrade = 'C · 中等适配';
+    fitClass = 'med';
+    fitDesc = `候选人在某些维度上存在与「${candidate.position}」岗位不完全匹配的特质，需谨慎评估。`;
+    recDecision = '<span class="marker">?</span> 谨慎录用';
+    recText = positionRecText.low;
+  } else {
+    fitGrade = 'D · 低度适配';
+    fitClass = 'low';
+    fitDesc = `候选人的人格特质与「${candidate.position}」岗位匹配度较低，存在明显的胜任风险。`;
+    recDecision = '<span class="marker">✗</span> 不建议录用';
+    recText = positionRecText.reject;
+  }
+  
+  // 优势与风险（基于主类型）
+  const strengths = getStrengths(primaryType);
+  const risks = getRisks(primaryType);
+  const developments = getDevelopments(primaryType);
+  const managementTips = getManagementTips(primaryType);
+  
+  const html = `
+    <div class="result-header">
+      <div class="result-meta-row">
+        <div class="item">候选人：<strong>${candidate.name}</strong></div>
+        <div class="item">编号：<strong>${candidate.id}</strong></div>
+        <div class="item">应聘岗位：<strong>${candidate.position}</strong></div>
+        <div class="item">测评日期：<strong>${candidate.date}</strong></div>
+        <div class="item">用时：<strong>${candidate.usedTime}</strong></div>
+      </div>
+      <h1 class="result-title">人格测评报告</h1>
+      <p class="result-subtitle">Enneagram Personality Assessment Report</p>
+    </div>
+    
+    <div class="validity-banner ${validity}">
+      <div class="validity-left">
+        <div class="validity-num">${validityScore}</div>
+        <div class="validity-tag">${validity === 'high' ? '可信度高' : validity === 'mid' ? '可信度中' : '可信度低'}</div>
+      </div>
+      <div class="validity-right">
+        <h4>作答可信度评估</h4>
+        <p class="summary">${validity === 'high' 
+          ? '候选人作答用时合理，选项分布均衡，同型号题目内部一致性良好，本次测评结果具有较高的参考价值。' 
+          : validity === 'mid'
+          ? '候选人作答存在一些需要关注的特征，建议结合面试观察综合判断，本次结果可作为重要参考但不应作为唯一依据。'
+          : '候选人作答存在多项异常特征，可能存在随意作答、讨好作答或抵触作答倾向，建议安排重新测评或在面试中重点验证。'}</p>
+        ${validityIssues.length > 0 ? `<ul class="validity-issues">${validityIssues.map(s => `<li>${s}</li>`).join('')}</ul>` : ''}
+      </div>
+    </div>
+    
+    <div class="validity-stats">
+      <div class="stat-item">
+        <div class="stat-num">${Math.round(social.high * 100)}%</div>
+        <div class="stat-label">高分占比 (4-5)</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">${Math.round(social.middle * 100)}%</div>
+        <div class="stat-label">中位占比 (3)</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">${Math.round(social.low * 100)}%</div>
+        <div class="stat-label">低分占比 (1-2)</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">${consistency.score}</div>
+        <div class="stat-label">同型号一致性</div>
+      </div>
+    </div>
+    
+    <div class="primary-type">
+      <div class="type-circle">
+        <div class="type-num-big">${primaryType}</div>
+        <div class="type-label">Primary Type</div>
+      </div>
+      <div class="type-content">
+        <div class="eyebrow">Your Dominant Type · 主导人格</div>
+        <h2>${primary.name}</h2>
+        <p class="nickname">${primary.subname} · ${primary.nickname}</p>
+        <p>${primary.desc}</p>
+      </div>
+    </div>
+    
+    <div class="scores-section">
+      <h3 class="section-title"><span class="num">01.</span>九型人格分布</h3>
+      <p class="section-sub">Type Distribution Across Nine Personality Profiles</p>
+      <div class="score-grid">
+        ${sortedTypes.map(([t, score], idx) => `
+          <div class="score-item ${idx === 0 ? 'top' : ''}">
+            <div class="score-item-head">
+              <div class="type-no">${t}</div>
+              <div class="score-val">${score} / 100</div>
+            </div>
+            <div class="type-name">${TYPES[t].name}</div>
+            <div class="score-bar"><div class="score-bar-fill" style="width: ${score}%"></div></div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    
+    <div class="chart-section">
+      <h3 class="section-title"><span class="num">02.</span>九维雷达图</h3>
+      <p class="section-sub">Visual Personality Radar</p>
+      <div class="chart-wrap">
+        <canvas id="radar-chart"></canvas>
+      </div>
+    </div>
+    
+    <div class="fit-section">
+      <h3 class="section-title"><span class="num">03.</span>${candidate.position}岗位适配度</h3>
+      <p class="section-sub">Job Fit Analysis for Customer Service Position</p>
+      
+      ${currentScenarios.length > 0 ? `
+      <div class="composite-fit">
+        <div class="cf-card">
+          <div class="cf-num">${personalityFit}</div>
+          <div class="cf-label">PERSONALITY FIT</div>
+          <div class="cf-desc">人格匹配度 (60%权重)</div>
+        </div>
+        <div class="cf-card composite">
+          <div class="cf-num">${fitScore}</div>
+          <div class="cf-label">COMPOSITE SCORE</div>
+          <div class="cf-desc">综合岗位适配度</div>
+        </div>
+        <div class="cf-card">
+          <div class="cf-num">${scenarioScore}</div>
+          <div class="cf-label">SITUATIONAL FIT</div>
+          <div class="cf-desc">情境胜任力 (40%权重)</div>
+        </div>
+      </div>
+      ` : ''}
+      
+      <div class="fit-summary">
+        <div class="fit-score">
+          <div class="fit-score-num ${fitClass}">${fitScore}</div>
+          <div class="fit-score-label">FIT INDEX / 100</div>
+        </div>
+        <div class="fit-text">
+          <span class="fit-grade">${fitGrade}</span>
+          <h3>岗位匹配评估</h3>
+          <p>${fitDesc}</p>
+        </div>
+      </div>
+      
+      <div class="fit-dimensions">
+        ${Object.entries(dimensions).map(([dim, score]) => {
+          const cls = score >= 70 ? 'h' : score >= 50 ? 'm' : 'l';
+          return `
+            <div class="dim-card">
+              <div class="dim-head">
+                <div class="dim-name">${dim}</div>
+                <div class="dim-score ${cls}">${score}</div>
+              </div>
+              <div class="dim-bar"><div class="dim-bar-fill ${cls}" style="width: ${score}%"></div></div>
+              <div class="dim-desc">${getDimDesc(dim, score)}</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+    
+    <div class="analysis-section">
+      <h3 class="section-title"><span class="num">04.</span>人格优势与风险分析</h3>
+      <p class="section-sub">Strengths, Risks & Development Insights</p>
+      
+      <div class="analysis-grid">
+        <div class="analysis-card">
+          <div class="head"><div class="head-icon green">+</div><h4>核心优势</h4></div>
+          <ul>${strengths.map(s => `<li>${s}</li>`).join('')}</ul>
+        </div>
+        <div class="analysis-card">
+          <div class="head"><div class="head-icon red">!</div><h4>潜在风险</h4></div>
+          <ul>${risks.map(s => `<li>${s}</li>`).join('')}</ul>
+        </div>
+        <div class="analysis-card">
+          <div class="head"><div class="head-icon gold">↑</div><h4>发展建议</h4></div>
+          <ul>${developments.map(s => `<li>${s}</li>`).join('')}</ul>
+        </div>
+        <div class="analysis-card">
+          <div class="head"><div class="head-icon blue">★</div><h4>管理建议</h4></div>
+          <ul>${managementTips.map(s => `<li>${s}</li>`).join('')}</ul>
+        </div>
+      </div>
+    </div>
+    
+    <div class="recommendation">
+      <div class="rec-content">
+        <div class="rec-label">FINAL RECOMMENDATION · 录用建议</div>
+        <div class="rec-decision">${recDecision}</div>
+        <p class="rec-text">${recText}</p>
+      </div>
+    </div>
+    
+    <div class="actions">
+      <button class="btn ghost" onclick="exportPDF()">导出 PDF 报告</button>
+      <button class="btn ghost" onclick="exportExcel()">导出 Excel 数据</button>
+      <button class="btn ghost" onclick="restart()">开始新测评</button>
+    </div>
+  `;
+  
+  document.getElementById('result-container').innerHTML = html;
+  
+  // 渲染雷达图
+  setTimeout(() => renderRadar(typeScores), 100);
+  
+  // 缓存供导出使用
+  window._resultData = { ...data, candidate, primary, fitGrade, recDecision, recText, strengths, risks, developments, managementTips };
+  
+  // 持久化保存到本地（管理后台可读取）
+  saveAssessmentRecord({
+    ...data,
+    candidate,
+    primary,
+    fitGrade,
+    recDecision: recDecision.replace(/<[^>]+>/g, '').trim(),
+    recText,
+    answers: {...answers},
+    scenarioAnswers: {...scenarioAnswers},
+    timestamp: Date.now(),
+    recordId: 'R' + Date.now() + Math.floor(Math.random() * 1000)
+  });
+}
+
+/* ============================================
+   本地存储管理 (用于管理后台)
+============================================ */
+const STORAGE_KEY = 'enneagram_assessment_records';
+const ADMIN_PASSWORD = 'admin2025'; // 管理员密码（可在头部修改）
+
+function saveAssessmentRecord(record) {
+  try {
+    const records = getAssessmentRecords();
+    records.push(record);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+  } catch (e) {
+    console.error('保存测评记录失败:', e);
+  }
+}
+
+function getAssessmentRecords() {
+  try {
+    const data = localStorage.getItem(STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function deleteAssessmentRecord(recordId) {
+  const records = getAssessmentRecords().filter(r => r.recordId !== recordId);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+}
+
+function clearAllRecords() {
+  localStorage.removeItem(STORAGE_KEY);
+}
+
+function renderRadar(scores) {
+  const ctx = document.getElementById('radar-chart');
+  if (!ctx) return;
+  new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: ['1.完美型', '2.助人型', '3.成就型', '4.自我型', '5.思考型', '6.忠诚型', '7.活跃型', '8.领袖型', '9.和平型'],
+      datasets: [{
+        label: '人格分布',
+        data: [scores[1], scores[2], scores[3], scores[4], scores[5], scores[6], scores[7], scores[8], scores[9]],
+        backgroundColor: 'rgba(200, 71, 47, 0.15)',
+        borderColor: '#c8472f',
+        borderWidth: 2,
+        pointBackgroundColor: '#c8472f',
+        pointBorderColor: '#1a1814',
+        pointRadius: 5,
+        pointHoverRadius: 7
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          beginAtZero: true,
+          max: 100,
+          ticks: { stepSize: 20, color: '#87807a', font: { size: 10 }, backdropColor: 'transparent' },
+          grid: { color: 'rgba(26, 24, 20, 0.1)' },
+          angleLines: { color: 'rgba(26, 24, 20, 0.1)' },
+          pointLabels: { color: '#1a1814', font: { size: 12, family: 'Noto Serif SC' } }
+        }
+      }
+    }
+  });
+}
+
+/* ============================================
+   维度描述 (按岗位差异化)
+============================================ */
+function getDimDesc(dim, score) {
+  const descs = {
+    // 共用维度
+    '情绪稳定': {
+      h: '情绪管理能力强，面对客户激烈情绪或负面言论时仍能保持冷静与专业。',
+      m: '情绪稳定性中等，需关注其在长期高压沟通中的心理承受度。',
+      l: '情绪较易受外界影响，建议提供心理疏导通道与情绪管理培训。'
+    },
+    '共情能力': {
+      h: '能精准捕捉客户情感需求，尤其在涉及未成年人/家长的敏感场景中表现突出。',
+      m: '具备基本共情能力，但在情感与规则的平衡上需加强训练。',
+      l: '相对偏理性，建议加强情绪识别与温度沟通话术培训。'
+    },
+    '原则坚守': {
+      h: '在客户施压、情感攻势下能坚守公司规则与立场，不轻易妥协。',
+      m: '一般情况下能守住底线，但在极端施压时可能存在动摇风险。',
+      l: '原则性偏弱，可能因人情或压力而越过规则边界，需重点辅导。'
+    },
+    '长期耐受': {
+      h: '能长期承受重复性、节奏稳定的工作而不产生明显厌倦或离职倾向。',
+      m: '中等耐受度，建议通过岗位轮换、技能晋升等方式维持长期投入。',
+      l: '对重复工作耐受度低，存在较高离职风险，需谨慎评估或提供成长通道。'
+    },
+    // 在线客服专属
+    '响应效率': {
+      h: '动作敏捷、目标导向强，适合高并发咨询场景，能快速处理大量会话。',
+      m: '响应速度中等，可通过话术模板和操作优化进一步提升产能。',
+      l: '处理速度偏慢，可能不适合高并发咨询岗，建议安排在节奏较缓的服务线。'
+    },
+    '多任务处理': {
+      h: '思维灵活，能同时处理多个会话并精准切换上下文，是在线客服的核心能力。',
+      m: '具备基本多任务能力，但在峰值时段可能出现疲劳或差错。',
+      l: '更倾向于单线程深度工作，建议安排电话或单一会话岗位。'
+    },
+    '客户共情': {
+      h: '能在快速响应中保持服务温度，让客户感受到被理解和尊重。',
+      m: '基本服务态度合格，但有时会显得机械化，需加强温度话术训练。',
+      l: '可能给客户留下冷淡印象，建议安排客户服务话术培训。'
+    },
+    '抗压稳定': {
+      h: '在大量并发咨询、客户抱怨高峰期仍能保持稳定输出，不易崩溃。',
+      m: '中等抗压能力，需关注其在每日高峰期或月底冲量阶段的状态。',
+      l: '抗压能力偏弱，建议安排在压力较小的非核心时段或提供心理支持。'
+    },
+    // 协商专员专属
+    '博弈决断': {
+      h: '在与客户的金额谈判、责任认定等博弈场景中能快速决断、敢于拍板。',
+      m: '具备基本决断力，但在重大决策时可能犹豫或寻求过多支持。',
+      l: '决断力偏弱，可能导致协商陷入僵局或客户得寸进尺，需加强训练。'
+    },
+    '理性分析': {
+      h: '能够冷静拆解客户诉求，识别合理与不合理部分，制定有针对性的协商策略。',
+      m: '具备基本分析能力，但在复杂案例中可能过于简化或经验主义。',
+      l: '更依赖经验和直觉，建议加强案例研习与逻辑推演训练。'
+    },
+    '抗压能力': {
+      h: '面对客户的辱骂、威胁、缠诉等极端施压能保持心理稳定与专业态度。',
+      m: '中等抗压力，遇到极端客户时可能需要主管介入或情绪缓冲。',
+      l: '抗压能力较弱，建议安排在常规协商案例，避开恶性投诉处理。'
+    }
+  };
+  if (!descs[dim]) return '';
+  const cls = score >= 70 ? 'h' : score >= 50 ? 'm' : 'l';
+  return descs[dim][cls];
+}
+
+/* ============================================
+   岗位差异化的录用建议文本
+============================================ */
+function getPositionRecText(position, fitScore, primaryType) {
+  const recs = {
+    '未成年退款话务客服': {
+      high: '该候选人在情绪稳定性、共情能力和规则坚守方面表现突出，非常适合处理未成年退款这类高情绪压力的话务工作。建议优先录用并安排在核心业务线，可作为新人导师后备人选。培训重点放在退款规则、未成年人保护法律知识及话术规范上。',
+      mid: '该候选人具备未成年退款话务岗的基本素质，但在某些维度（如长期耐受或情绪管理）可能需要额外辅导。建议录用并配置经验丰富的导师，试用期重点观察其面对家长激烈投诉时的稳定性。建议提供心理减压机制。',
+      low: '该候选人在面对未成年退款话务的高情绪压力场景时存在适配风险，尤其是面对激烈情绪的家长投诉。建议在面试中模拟实际话务场景进行二次评估，或考虑调配至在线客服等沟通压力相对较低的岗位。',
+      reject: '该候选人的人格特质与未成年退款话务岗位匹配度较低。该岗位需要长期承受家长激烈情绪、坚守规则同时又能展现温度，对人格稳定性要求极高。如确需录用，建议调配至沟通压力更轻的岗位，避免造成员工心理伤害和高离职率。'
+    },
+    '在线客服': {
+      high: '该候选人在响应效率、多任务处理与客户共情方面表现突出，是在线客服岗位的理想人选。建议优先录用并可考虑分配至高并发咨询线。培训重点放在产品知识、快捷话术与会话切换技巧上，预计能快速进入高产能阶段，可作为绩效冲刺人才储备。',
+      mid: '该候选人具备在线客服岗位所需的基本素质，但在多任务处理或抗压方面可能存在一定挑战。建议录用并安排在常规咨询线，避免一开始就投入高并发岗位。试用期重点观察其在峰值时段的状态，并提供话术与效率工具培训。',
+      low: '该候选人与在线客服岗位的匹配度处于临界状态。在线客服需要快速响应、灵活切换、保持服务温度，对效率与情绪调节要求较高。建议在面试中通过情景模拟进一步评估，或考虑调配至话务客服等节奏相对单一的岗位。',
+      reject: '该候选人的人格特质不适合在线客服这种高并发、快节奏、文字沟通为主的岗位。其特质可能在更深度、更专一的工作场景中发挥更好。建议婉拒或调配至其他与人格更匹配的岗位，如内容审核、数据分析等。'
+    },
+    '协商专员客服': {
+      high: '该候选人在原则坚守、博弈决断与抗压能力方面表现突出，是协商专员岗位的核心人才。建议优先录用，可考虑分配至高难度协商案例线，并作为协商组长后备人选培养。培训重点放在协商策略、法律边界与心理学话术上，预计能在协商成功率上有显著贡献。',
+      mid: '该候选人具备协商专员所需的基本素质，但在博弈决断或抗压方面可能需要进一步训练。建议录用并安排在常规协商案例上锻炼，由资深专员带教。试用期需重点观察其面对客户施压时的立场坚守度，避免过早触碰高难度案例。',
+      low: '该候选人与协商专员岗位的适配度处于临界状态。该岗位需要在与客户的博弈中坚守原则、敢于决断、抗住施压，对人格的"硬度"要求很高。建议进一步评估，或考虑调配至话务客服、在线客服等服务属性更强、博弈属性较弱的岗位。',
+      reject: '该候选人的人格特质与协商专员岗位存在显著不匹配。协商岗位需要在博弈中坚守立场，候选人可能因共情过度、回避冲突或情绪化等特质而难以胜任，存在被客户突破底线、给公司带来损失的风险。建议调配至更适合的服务岗位，或婉拒录用。'
+    }
+  };
+  return recs[position];
+}
+
+
+function getStrengths(t) {
+  const map = {
+    1: ['对错误高度敏感，是天然的"质量守门员"', '严格遵守规则与流程，不易因人情妥协', '工作认真严谨，错漏率低', '面对客户施压能坚守原则不退让'],
+    2: ['共情能力强，适合处理涉及情感的客诉案例', '团队氛围良好，能促进同事关系', '对客户需求敏感，理解力强', '服务意识与团队精神突出'],
+    3: ['执行力强，KPI达成率高', '产能稳定，能快速适应绩效考核', '对个人成长有规划，进取心强', '形象意识有助于专业表现'],
+    4: ['对客户独特诉求有敏锐感知', '能识别非标准化的特殊案例', '审美与细节意识有助于内容判断', '富有同理心，理解客户情感表达'],
+    5: ['理性分析能力突出，适合疑难案例', '不被情绪干扰，判断客观', '深度思考能力强，规则梳理见长', '独立工作能力强，自我驱动'],
+    6: ['风险意识强，是合规岗位的最适配型号之一', '对疑点有警觉性，差错率低', '忠诚度高，组织归属感强', '执行规范严谨，可信赖度高'],
+    7: ['思维灵活，适合应对突发情况', '抗压能力强，态度积极', '学习新规则速度快，多任务处理能力强', '在团队中有正向能量传播作用'],
+    8: ['果断决策，适合协商博弈类岗位', '执行力强，敢于担责', '抗压能力突出，不易示弱', '具备组长/管理岗潜质'],
+    9: ['情绪极度稳定，适合长期高压客诉', '耐心持久，重复工作耐受度高', '团队协作良好，无攻击性', '抗负面情绪刺激能力强']
+  };
+  return map[t];
+}
+
+function getRisks(t) {
+  const map = {
+    1: ['可能过度纠结细节，影响工作效率', '对自己和他人要求过高，易产生压力', '难以接受规则的合理弹性', '可能因苛求完美而焦虑'],
+    2: ['可能因共情过度而影响客观判断', '难以拒绝同事请求，造成自身负担', '对负面情绪内化较深，需关注心理健康', '在违规处理或博弈协商时容易心软妥协'],
+    3: ['可能为追求KPI而牺牲服务质量', '形象意识强，对负面反馈敏感', '团队合作中可能过于竞争', '失败时易产生强烈挫败感'],
+    4: ['情绪波动较大，影响稳定输出', '对重复性标准化工作耐受度低', '容易陷入个人情感影响判断', '离职风险相对较高'],
+    5: ['人际沟通可能略显疏离', '协作类任务积极性偏低', '可能对客户情绪缺乏共情', '过度分析延缓决策速度'],
+    6: ['可能过度谨慎导致决策延迟', '对模糊规则适应较慢', '面对新任务有焦虑情绪', '容易被压力影响而过度保守'],
+    7: ['对单调重复工作耐受度极低', '离职风险高，长期稳定性差', '可能因追求新鲜而忽视细节', '受约束环境会显著降低绩效'],
+    8: ['可能过于强势影响团队和谐', '对柔性沟通耐受度低', '在协作中倾向主导，需平衡', '对细节耐心可能不足'],
+    9: ['决策速度可能偏慢', '面对冲突时倾向回避', '主动性和自驱力略弱', '容易被强势同事或客户影响判断']
+  };
+  return map[t];
+}
+
+function getDevelopments(t) {
+  const map = {
+    1: ['学习在效率与完美之间找到平衡点', '培养对规则弹性空间的接受度', '建立自我减压机制，避免内耗', '可向质检、流程优化方向发展'],
+    2: ['训练情绪与判断分离的能力', '学会设立工作边界', '增强基于规则而非情感的判断力', '可向客诉处理、用户体验方向发展'],
+    3: ['关注质量与效率的平衡', '建立内在驱动而非外在认可', '增强团队协作意识', '可向团队长、绩效管理方向发展'],
+    4: ['加强标准化流程的执行训练', '建立稳定的情绪管理机制', '将创造力运用于服务方案', '可向VIP客服、客户体验方向发展'],
+    5: ['加强人际沟通与共情训练', '提升决策速度，避免过度分析', '增加对客户情感的理解', '可向规则制定、复杂案例处理方向发展'],
+    6: ['训练在不确定中果断决策的能力', '建立对自己判断的信心', '加强主动表达和提案', '可向风控、合规岗方向深耕'],
+    7: ['培养专注与持久的工作习惯', '寻找单调工作中的成就感', '设立长期目标避免频繁跳槽', '可向多业务轮岗、培训师方向发展'],
+    8: ['加强柔性沟通和倾听能力', '在执行中兼顾客户感受', '学会授权而非过度掌控', '可向协商组长、疑难案例处理方向发展'],
+    9: ['加强主动性和自我表达', '训练果断决策能力', '建立明确的职业规划', '可在客服一线长期稳定发展']
+  };
+  return map[t];
+}
+
+function getManagementTips(t) {
+  const map = {
+    1: ['给予明确标准和清晰反馈', '避免对其错误过度强调', '认可其严谨工作的价值', '提供质量改进类的进阶通道'],
+    2: ['多给予情感关怀和认可', '帮其建立工作边界', '避免让其独自承担过多请求', '可委以关怀同事的辅助角色'],
+    3: ['设置明确的KPI和晋升路径', '给予公开认可与排名激励', '注意防止其忽视质量和服务温度', '提供清晰的职业发展阶梯'],
+    4: ['尊重其个性化表达', '提供变化和创意的工作内容', '关注其情绪状态', '避免长期单一任务安排'],
+    5: ['给予独立工作空间和时间', '减少不必要的会议干扰', '通过书面方式沟通要求', '安排其负责复杂疑难案例'],
+    6: ['提供清晰的指令和规则', '建立稳定的团队关系', '及时回应其疑虑和提问', '可分配高合规要求的业务线'],
+    7: ['提供多样化的任务内容', '建立轮岗或技能晋升机制', '给予新鲜感和成就感', '不建议长期单一岗位'],
+    8: ['给予一定的自主权和决策空间', '直接坦诚的沟通方式', '可考虑培养为协商组长', '避免过度细节管控'],
+    9: ['提供稳定的工作节奏', '给予明确而非压迫的指引', '主动询问其意见想法', '是客服一线长期稳定的核心员工']
+  };
+  return map[t];
+}
+
+/* ============================================
+   导出功能
+============================================ */
+async function exportPDF() {
+  const { jsPDF } = window.jspdf;
+  const container = document.getElementById('result-container');
+  
+  // 隐藏按钮
+  const actions = container.querySelector('.actions');
+  if (actions) actions.style.display = 'none';
+  
+  try {
+    const canvas = await html2canvas(container, { 
+      scale: 2, 
+      useCORS: true,
+      backgroundColor: '#f5f1e8',
+      windowWidth: container.scrollWidth
+    });
+    
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    const imgWidth = pdfWidth;
+    const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+    
+    let heightLeft = imgHeight;
+    let position = 0;
+    
+    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pdfHeight;
+    
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
+    }
+    
+    pdf.save(`九型人格测评报告_${candidate.name}_${candidate.date}.pdf`);
+  } catch (err) {
+    alert('PDF 导出失败: ' + err.message);
+  } finally {
+    if (actions) actions.style.display = '';
+  }
+}
+
+function exportExcel() {
+  const data = window._resultData;
+  if (!data) return;
+  
+  const wb = XLSX.utils.book_new();
+  
+  // Sheet 1: 基本信息
+  const basicData = [
+    ['九型人格测评报告 - 客服岗位入职评估'],
+    [],
+    ['候选人姓名', candidate.name],
+    ['候选人编号', candidate.id],
+    ['应聘岗位', candidate.position],
+    ['所属部门', candidate.dept],
+    ['测评日期', candidate.date],
+    [],
+    ['测评结果摘要'],
+    ['主导人格类型', `${data.primaryType}号 - ${data.primary.name}`],
+    ['人格特征', data.primary.subname],
+    ['岗位适配度', data.fitScore + ' / 100'],
+    ['适配等级', data.fitGrade],
+    ['录用建议', data.recDecision.replace(/<[^>]+>/g, '').trim()],
+  ];
+  const ws1 = XLSX.utils.aoa_to_sheet(basicData);
+  ws1['!cols'] = [{wch:20},{wch:50}];
+  XLSX.utils.book_append_sheet(wb, ws1, '基本信息');
+  
+  // Sheet 2: 九型分数
+  const scoreData = [['型号', '名称', '英文名', '得分(满分100)', '排名']];
+  data.sortedTypes.forEach(([t, score], idx) => {
+    scoreData.push([t, TYPES[t].name, TYPES[t].subname, score, idx + 1]);
+  });
+  const ws2 = XLSX.utils.aoa_to_sheet(scoreData);
+  ws2['!cols'] = [{wch:8},{wch:14},{wch:30},{wch:16},{wch:8}];
+  XLSX.utils.book_append_sheet(wb, ws2, '九型得分');
+  
+  // Sheet 3: 维度评估
+  const dimData = [['评估维度', '得分', '说明']];
+  Object.entries(data.dimensions).forEach(([dim, score]) => {
+    dimData.push([dim, score, getDimDesc(dim, score)]);
+  });
+  const ws3 = XLSX.utils.aoa_to_sheet(dimData);
+  ws3['!cols'] = [{wch:14},{wch:10},{wch:80}];
+  XLSX.utils.book_append_sheet(wb, ws3, '维度评估');
+  
+  // Sheet 4: 优势与风险
+  const analysisData = [['类别', '内容']];
+  data.strengths.forEach(s => analysisData.push(['核心优势', s]));
+  data.risks.forEach(s => analysisData.push(['潜在风险', s]));
+  data.developments.forEach(s => analysisData.push(['发展建议', s]));
+  data.managementTips.forEach(s => analysisData.push(['管理建议', s]));
+  const ws4 = XLSX.utils.aoa_to_sheet(analysisData);
+  ws4['!cols'] = [{wch:14},{wch:80}];
+  XLSX.utils.book_append_sheet(wb, ws4, '优势风险分析');
+  
+  // Sheet 5: 录用建议
+  const recData = [
+    ['录用建议综合报告'],
+    [],
+    ['岗位适配度', data.fitScore + '/100'],
+    ['适配等级', data.fitGrade],
+    ['决策建议', data.recDecision.replace(/<[^>]+>/g, '').trim()],
+    [],
+    ['详细说明'],
+    [data.recText],
+  ];
+  const ws5 = XLSX.utils.aoa_to_sheet(recData);
+  ws5['!cols'] = [{wch:100}];
+  XLSX.utils.book_append_sheet(wb, ws5, '录用建议');
+  
+  // Sheet 6: 原始题目作答 (便于复核)
+  const rawData = [['题号', '题目', '人格类型', '得分(1-5)']];
+  QUESTIONS.forEach((q, idx) => {
+    rawData.push([idx + 1, q.q, `${q.t}号-${TYPES[q.t].name}`, answers[idx] || 0]);
+  });
+  const ws6 = XLSX.utils.aoa_to_sheet(rawData);
+  ws6['!cols'] = [{wch:6},{wch:60},{wch:18},{wch:10}];
+  XLSX.utils.book_append_sheet(wb, ws6, '原始作答');
+  
+  XLSX.writeFile(wb, `九型人格测评数据_${candidate.name}_${candidate.date}.xlsx`);
+}
+
+/* ============================================
+   管理后台功能
+============================================ */
+function showAdminLogin() {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('admin-login').classList.add('active');
+  document.getElementById('admin-pwd').value = '';
+  document.getElementById('admin-error').style.display = 'none';
+  setTimeout(() => document.getElementById('admin-pwd').focus(), 100);
+}
+
+function backToCover() {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('cover').classList.add('active');
+}
+
+function adminLogin() {
+  const pwd = document.getElementById('admin-pwd').value;
+  if (pwd === ADMIN_PASSWORD) {
+    sessionStorage.setItem('admin_authed', '1');
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('admin-dashboard').classList.add('active');
+    renderAdminDashboard();
+  } else {
+    document.getElementById('admin-error').style.display = 'block';
+    document.getElementById('admin-pwd').value = '';
+  }
+}
+
+function adminLogout() {
+  sessionStorage.removeItem('admin_authed');
+  backToCover();
+}
+
+function renderAdminDashboard() {
+  const records = getAssessmentRecords();
+  
+  // 统计概览
+  const total = records.length;
+  const aGrade = records.filter(r => r.fitGrade && r.fitGrade.startsWith('A')).length;
+  const lowValidity = records.filter(r => r.validity === 'low').length;
+  const positions = new Set(records.map(r => r.candidate.position)).size;
+  
+  document.getElementById('admin-stats').innerHTML = `
+    <div class="stat-item">
+      <div class="stat-num">${total}</div>
+      <div class="stat-label">总测评数</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" style="color: var(--olive);">${aGrade}</div>
+      <div class="stat-label">A级高度适配</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" style="color: var(--accent);">${lowValidity}</div>
+      <div class="stat-label">可信度异常</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">${positions}</div>
+      <div class="stat-label">覆盖岗位</div>
+    </div>
+  `;
+  
+  renderAdminTable();
+}
+
+function renderAdminTable() {
+  const search = document.getElementById('admin-search').value.toLowerCase().trim();
+  const positionFilter = document.getElementById('admin-filter-position').value;
+  const gradeFilter = document.getElementById('admin-filter-grade').value;
+  
+  let records = getAssessmentRecords();
+  
+  // 按时间倒序
+  records.sort((a, b) => b.timestamp - a.timestamp);
+  
+  // 筛选
+  if (search) {
+    records = records.filter(r => 
+      (r.candidate.name || '').toLowerCase().includes(search) ||
+      (r.candidate.id || '').toLowerCase().includes(search)
+    );
+  }
+  if (positionFilter) {
+    records = records.filter(r => r.candidate.position === positionFilter);
+  }
+  if (gradeFilter) {
+    records = records.filter(r => r.fitGrade && r.fitGrade.startsWith(gradeFilter));
+  }
+  
+  const wrap = document.getElementById('admin-table-wrap');
+  
+  if (records.length === 0) {
+    wrap.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">∅</div>
+        <div class="empty-state-title">暂无测评记录</div>
+        <div class="empty-state-desc">候选人完成测评后将自动出现在此处</div>
+      </div>
+    `;
+    return;
+  }
+  
+  const rows = records.map(r => {
+    const fitClass = r.fitScore >= 75 ? 'h' : r.fitScore >= 60 ? 'm' : 'l';
+    const grade = r.fitGrade ? r.fitGrade.charAt(0) : 'C';
+    const gradeText = r.fitGrade || '——';
+    const validityIcon = r.validity === 'high' ? '●' : r.validity === 'mid' ? '◐' : '○';
+    const validityColor = r.validity === 'high' ? 'var(--olive)' : r.validity === 'mid' ? 'var(--gold)' : 'var(--accent)';
+    const date = new Date(r.timestamp).toLocaleString('zh-CN', {month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'});
+    
+    return `
+      <tr class="${r.validity === 'low' ? 'low-validity' : ''}">
+        <td><strong>${r.candidate.name}</strong></td>
+        <td style="color: var(--muted);">${r.candidate.id}</td>
+        <td>${r.candidate.position}</td>
+        <td><span class="grade-pill ${grade}">${gradeText}</span></td>
+        <td><span class="fit-pill ${fitClass}">${r.fitScore}</span></td>
+        <td>${r.primaryType}号 · ${TYPES[r.primaryType].name}</td>
+        <td style="color: ${validityColor}; font-size: 16px;" title="可信度: ${r.validityScore}">${validityIcon} ${r.validityScore}</td>
+        <td style="color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 11px;">${date}</td>
+        <td>
+          <button class="admin-action" onclick="viewRecordDetail('${r.recordId}')">详情</button>
+          <button class="admin-action" onclick="exportRecordPDF('${r.recordId}')">PDF</button>
+          <button class="admin-action danger" onclick="confirmDeleteRecord('${r.recordId}', '${r.candidate.name}')">删</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+  
+  wrap.innerHTML = `
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>姓名</th>
+          <th>编号</th>
+          <th>应聘岗位</th>
+          <th>等级</th>
+          <th>适配度</th>
+          <th>主导人格</th>
+          <th>可信度</th>
+          <th>测评时间</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="margin-top: 16px; font-size: 12px; color: var(--muted); text-align: right;">
+      共 ${records.length} 条记录
+    </div>
+  `;
+}
+
+function viewRecordDetail(recordId) {
+  const record = getAssessmentRecords().find(r => r.recordId === recordId);
+  if (!record) return;
+  
+  const c = record.candidate;
+  const sortedTypes = record.sortedTypes || [];
+  const date = new Date(record.timestamp).toLocaleString('zh-CN');
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay active';
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+  
+  modal.innerHTML = `
+    <div class="modal-content">
+      <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+      <div class="eyebrow">Candidate Detail · 候选人详情</div>
+      <h2 style="font-family: 'DM Serif Display', 'Noto Serif SC', serif; font-size: 32px; font-weight: 400; margin: 8px 0 24px;">
+        ${c.name}
+      </h2>
+      
+      <div class="modal-detail">
+        <div class="modal-detail-item"><div class="lbl">候选人编号</div><div class="val">${c.id}</div></div>
+        <div class="modal-detail-item"><div class="lbl">应聘岗位</div><div class="val">${c.position}</div></div>
+        <div class="modal-detail-item"><div class="lbl">所属部门</div><div class="val">${c.dept}</div></div>
+        <div class="modal-detail-item"><div class="lbl">测评日期</div><div class="val">${c.date}</div></div>
+        <div class="modal-detail-item"><div class="lbl">作答用时</div><div class="val">${c.usedTime || '——'}</div></div>
+        <div class="modal-detail-item"><div class="lbl">提交时间</div><div class="val" style="font-size:13px;">${date}</div></div>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 24px;">
+        <div style="padding: 16px; background: var(--cream); text-align: center;">
+          <div style="font-family: 'DM Serif Display', serif; font-size: 32px; font-style: italic; color: var(--accent);">${record.fitScore}</div>
+          <div style="font-size: 11px; color: var(--muted); letter-spacing: 0.1em; margin-top: 4px;">岗位适配度</div>
+        </div>
+        <div style="padding: 16px; background: var(--cream); text-align: center;">
+          <div style="font-family: 'DM Serif Display', serif; font-size: 32px; font-style: italic;">${record.primaryType}</div>
+          <div style="font-size: 11px; color: var(--muted); letter-spacing: 0.1em; margin-top: 4px;">${TYPES[record.primaryType].name}</div>
+        </div>
+        <div style="padding: 16px; background: var(--cream); text-align: center;">
+          <div style="font-family: 'DM Serif Display', serif; font-size: 32px; font-style: italic; color: ${record.validity === 'high' ? 'var(--olive)' : record.validity === 'mid' ? 'var(--gold)' : 'var(--accent)'};">${record.validityScore}</div>
+          <div style="font-size: 11px; color: var(--muted); letter-spacing: 0.1em; margin-top: 4px;">作答可信度</div>
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 24px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.15em; color: var(--muted); margin-bottom: 12px;">EVALUATION DIMENSIONS · 维度评估</div>
+        ${Object.entries(record.dimensions || {}).map(([d, s]) => `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line);">
+            <span style="font-size: 14px;">${d}</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-weight: 600; color: ${s >= 70 ? 'var(--olive)' : s >= 50 ? 'var(--gold)' : 'var(--accent)'};">${s} / 100</span>
+          </div>
+        `).join('')}
+      </div>
+      
+      <div style="margin-bottom: 24px;">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.15em; color: var(--muted); margin-bottom: 12px;">RECOMMENDATION · 录用建议</div>
+        <div style="padding: 16px; background: var(--ink); color: var(--paper); font-size: 14px; line-height: 1.7;">
+          <div style="font-family: 'DM Serif Display', serif; font-size: 20px; margin-bottom: 8px; color: var(--accent);">${record.recDecision}</div>
+          <p style="color: rgba(245, 241, 232, 0.85);">${record.recText}</p>
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 16px; border-top: 1px solid var(--line);">
+        <button class="btn ghost" style="padding: 12px 20px; font-size: 13px;" onclick="exportRecordPDF('${recordId}')">导出 PDF</button>
+        <button class="btn ghost" style="padding: 12px 20px; font-size: 13px;" onclick="exportRecordExcel('${recordId}')">导出 Excel</button>
+        <button class="btn" style="padding: 12px 20px; font-size: 13px;" onclick="this.closest('.modal-overlay').remove()">关闭</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+}
+
+function confirmDeleteRecord(recordId, name) {
+  if (confirm(`确认删除「${name}」的测评记录吗？此操作不可撤销。`)) {
+    deleteAssessmentRecord(recordId);
+    renderAdminDashboard();
+  }
+}
+
+function confirmClearAll() {
+  const count = getAssessmentRecords().length;
+  if (count === 0) {
+    alert('当前没有任何记录');
+    return;
+  }
+  const confirmText = prompt(`此操作将删除全部 ${count} 条测评记录，且无法恢复。\n如确认请输入"确认清空"：`);
+  if (confirmText === '确认清空') {
+    clearAllRecords();
+    renderAdminDashboard();
+    alert('已清空所有记录');
+  }
+}
+
+/* 导出单条记录的 Excel */
+function exportRecordExcel(recordId) {
+  const record = getAssessmentRecords().find(r => r.recordId === recordId);
+  if (!record) return;
+  
+  const wb = XLSX.utils.book_new();
+  const c = record.candidate;
+  
+  const basicData = [
+    ['九型人格测评报告 - 客服岗位入职评估'],
+    [],
+    ['候选人姓名', c.name],
+    ['候选人编号', c.id],
+    ['应聘岗位', c.position],
+    ['所属部门', c.dept],
+    ['测评日期', c.date],
+    ['作答用时', c.usedTime || '——'],
+    ['提交时间', new Date(record.timestamp).toLocaleString('zh-CN')],
+    [],
+    ['测评结果摘要'],
+    ['主导人格类型', `${record.primaryType}号 - ${TYPES[record.primaryType].name}`],
+    ['岗位适配度', record.fitScore + ' / 100'],
+    ['适配等级', record.fitGrade],
+    ['作答可信度', record.validityScore + ' / 100 (' + (record.validity === 'high' ? '高' : record.validity === 'mid' ? '中' : '低') + ')'],
+    ['录用建议', record.recDecision],
+  ];
+  const ws1 = XLSX.utils.aoa_to_sheet(basicData);
+  ws1['!cols'] = [{wch:20},{wch:50}];
+  XLSX.utils.book_append_sheet(wb, ws1, '基本信息');
+  
+  const scoreData = [['型号', '名称', '得分', '排名']];
+  (record.sortedTypes || []).forEach(([t, score], idx) => {
+    scoreData.push([t, TYPES[t].name, score, idx + 1]);
+  });
+  const ws2 = XLSX.utils.aoa_to_sheet(scoreData);
+  XLSX.utils.book_append_sheet(wb, ws2, '九型得分');
+  
+  XLSX.writeFile(wb, `测评_${c.name}_${c.date}.xlsx`);
+}
+
+/* 导出单条记录的 PDF */
+function exportRecordPDF(recordId) {
+  alert('请先点击"详情"打开候选人报告，详情页有完整 PDF 导出功能。\n或使用批量导出 Excel 获取数据汇总。');
+}
+
+/* 批量导出全部记录 Excel */
+function exportAllExcel() {
+  const records = getAssessmentRecords();
+  if (records.length === 0) {
+    alert('当前没有任何记录可导出');
+    return;
+  }
+  
+  const wb = XLSX.utils.book_new();
+  
+  // Sheet 1: 汇总表
+  const summaryHead = [
+    '姓名', '编号', '应聘岗位', '所属部门', '测评日期', '用时',
+    '主导人格', '适配度', '适配等级', '录用建议',
+    '可信度分', '可信度等级',
+    '1号', '2号', '3号', '4号', '5号', '6号', '7号', '8号', '9号',
+    '高分占比', '中位占比', '低分占比', '提交时间'
+  ];
+  
+  const summaryRows = records.map(r => {
+    const c = r.candidate;
+    const ts = r.typeScores || {};
+    return [
+      c.name, c.id, c.position, c.dept, c.date, c.usedTime || '',
+      r.primaryType + '号-' + (TYPES[r.primaryType] ? TYPES[r.primaryType].name : ''),
+      r.fitScore, r.fitGrade, r.recDecision,
+      r.validityScore, r.validity === 'high' ? '高' : r.validity === 'mid' ? '中' : '低',
+      ts[1], ts[2], ts[3], ts[4], ts[5], ts[6], ts[7], ts[8], ts[9],
+      r.social ? Math.round(r.social.high * 100) + '%' : '',
+      r.social ? Math.round(r.social.middle * 100) + '%' : '',
+      r.social ? Math.round(r.social.low * 100) + '%' : '',
+      new Date(r.timestamp).toLocaleString('zh-CN')
+    ];
+  });
+  
+  const ws1 = XLSX.utils.aoa_to_sheet([summaryHead, ...summaryRows]);
+  ws1['!cols'] = [
+    {wch:10},{wch:12},{wch:18},{wch:14},{wch:12},{wch:8},
+    {wch:18},{wch:8},{wch:14},{wch:14},
+    {wch:10},{wch:10},
+    ...Array(9).fill({wch:6}),
+    {wch:10},{wch:10},{wch:10},{wch:18}
+  ];
+  XLSX.utils.book_append_sheet(wb, ws1, '测评汇总');
+  
+  // Sheet 2: 按岗位分组统计
+  const positions = ['未成年退款话务客服', '在线客服', '协商专员客服'];
+  const statsData = [['岗位', '总人数', 'A级', 'B级', 'C级', 'D级', '平均适配度', '可信度异常']];
+  positions.forEach(pos => {
+    const posRecords = records.filter(r => r.candidate.position === pos);
+    if (posRecords.length === 0) return;
+    const a = posRecords.filter(r => r.fitGrade && r.fitGrade.startsWith('A')).length;
+    const b = posRecords.filter(r => r.fitGrade && r.fitGrade.startsWith('B')).length;
+    const c = posRecords.filter(r => r.fitGrade && r.fitGrade.startsWith('C')).length;
+    const d = posRecords.filter(r => r.fitGrade && r.fitGrade.startsWith('D')).length;
+    const avgFit = Math.round(posRecords.reduce((sum, r) => sum + r.fitScore, 0) / posRecords.length);
+    const lowVal = posRecords.filter(r => r.validity === 'low').length;
+    statsData.push([pos, posRecords.length, a, b, c, d, avgFit, lowVal]);
+  });
+  const ws2 = XLSX.utils.aoa_to_sheet(statsData);
+  ws2['!cols'] = [{wch:24},{wch:10},{wch:8},{wch:8},{wch:8},{wch:8},{wch:14},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, ws2, '岗位统计');
+  
+  const today = new Date().toISOString().split('T')[0];
+  XLSX.writeFile(wb, `九型人格测评_批量数据_${today}.xlsx`);
+}
+
+function restart() {
+  if (!confirm('确定要开始新的测评吗？当前结果将不会被保存。')) return;
+  answers = {};
+  scenarioAnswers = {};
+  candidate = {};
+  currentScenarios = [];
+  stopTimer();
+  document.getElementById('cand-name').value = '';
+  document.getElementById('cand-id').value = '';
+  document.getElementById('cand-dept').value = '';
+  document.getElementById('result-page').classList.remove('active');
+  document.getElementById('cover').classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+
+</body>
+</html>
